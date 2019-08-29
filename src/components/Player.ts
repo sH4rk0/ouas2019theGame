@@ -14,6 +14,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private acceleration: number = 500;
   private isJumping: boolean = false;
   private isDown: boolean = false;
+  private stillDown: boolean = false;
   private isDying: boolean = false;
   private key: string;
   private commands: boolean;
@@ -102,9 +103,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     let _downConfig: Phaser.Types.Animations.Animation = {
       key: this.key + "-down",
       frames: this.currentScene.anims.generateFrameNumbers(this.key, {
-        frames: [20]
+        frames: [20, 33]
       }),
-      frameRate: 0,
+      frameRate: 8,
       yoyo: false,
       repeat: 0
     };
@@ -208,6 +209,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.setFlipX(true);
       //@ts-ignore
     } else if (this.keys.get("DOWN").isDown) {
+      //console.log("down");
       //@ts-ignore
       this.body.setSize(20, 30);
       if (this.flipX) {
@@ -215,13 +217,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       } else {
         this.body.setOffset(25, 38);
       }
-
       //@ts-ignore
       this.body.setVelocityX(0);
       //@ts-ignore
       this.body.setAccelerationX(0);
+
       this.isDown = true;
-    } else {
+    } else if (
+      //@ts-ignore
+      !this.keys.get("DOWN").isDown &&
+      //@ts-ignore
+      !this.keys.get("LEFT").isDown &&
+      //@ts-ignore
+      !this.keys.get("RIGHT").isDown &&
+      //@ts-ignore
+      !this.keys.get("UP").isDown
+    ) {
+      //console.log("not key");
       this.body.setSize(20, 48);
       if (this.flipX) {
         this.body.setOffset(15, 20);
@@ -234,6 +246,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       //@ts-ignore
       this.body.setAccelerationX(0);
       this.isDown = false;
+      this.stillDown = false;
     }
 
     if (
@@ -283,10 +296,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     } else if (
       this.body.velocity.x === 0 &&
       !this.isJumping &&
+      this.touchedPlatform == null &&
       this.isDown &&
-      this.touchedPlatform == null
+      !this.stillDown
     ) {
-      this.anims.play(this.key + "-down", true);
+      //console.log("down anim");
+      this.stillDown = true;
+      this.anims.play(this.key + "-down", false);
     } else if (
       //@ts-ignore
       this.keys.get("UP").isDown &&
@@ -301,11 +317,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.anims.play(this.key + "-search", true);
     } else if (
       //@ts-ignore
-      this.body.onFloor() ||
-      //@ts-ignore
-      this.touchingPlatform ||
-      //@ts-ignore
-      this.body.blocked.down
+      (this.body.onFloor() ||
+        //@ts-ignore
+        this.touchingPlatform ||
+        //@ts-ignore
+        this.body.blocked.down) &&
+      !this.isDown &&
+      !this.isJumping &&
+      !this.isSearching
     ) {
       //console.log("idle");
       this.anims.play(this.key + "-idle", true);
