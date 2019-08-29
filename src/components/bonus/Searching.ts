@@ -33,7 +33,6 @@ export class Searching extends Phaser.GameObjects.Container {
   //200:start=x:current
 
   setValue(start: number, current: number): void {
-    console.log((current * 200) / start);
     this.searchBar.setDisplaySize((current * 200) / start, 20);
   }
 }

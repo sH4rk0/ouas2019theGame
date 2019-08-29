@@ -23,6 +23,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private touchingPlatform: boolean;
   private touchedPlatform: Platform | Lift | null;
   private platformVelocity: number;
+  private isSearching: boolean = false;
 
   //@ts-ignore
   public keys: Map<string, Phaser.Input.Keyboard.Key>;
@@ -109,6 +110,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     };
 
     this.currentScene.anims.create(_downConfig);
+
+    let _searchConfig: Phaser.Types.Animations.Animation = {
+      key: this.key + "-search",
+      frames: this.currentScene.anims.generateFrameNumbers(this.key, {
+        frames: [30, 31, 32]
+      }),
+      frameRate: 6,
+      yoyo: true,
+      repeat: -1
+    };
+
+    this.currentScene.anims.create(_searchConfig);
 
     this.setOrigin(0.5, 0.5);
     this.setFlipX(false);
@@ -229,7 +242,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       !this.isJumping &&
       this.touchedPlatform != null &&
       this.touchedPlatform.isTriggered() &&
-      !this.touchedPlatform.isMoving()
+      !this.touchedPlatform.isMoving() &&
+      //@ts-ignore
+      !this.keys.get("RIGHT").isDown &&
+      //@ts-ignore
+      !this.keys.get("LEFT").isDown
     ) {
       this.touchedPlatform.trigger(2);
     }
@@ -240,7 +257,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       !this.isJumping &&
       this.touchedPlatform != null &&
       this.touchedPlatform.isTriggered() &&
-      !this.touchedPlatform.isMoving()
+      !this.touchedPlatform.isMoving() &&
+      //@ts-ignore
+      !this.keys.get("RIGHT").isDown &&
+      //@ts-ignore
+      !this.keys.get("LEFT").isDown
     ) {
       this.touchedPlatform.trigger(0);
     }
@@ -259,8 +280,25 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     } else if (this.body.velocity.x !== 0 && !this.isJumping) {
       this.anims.play(this.key + "-run", true);
       //@ts-ignore
-    } else if (this.body.velocity.x === 0 && !this.isJumping && this.isDown) {
+    } else if (
+      this.body.velocity.x === 0 &&
+      !this.isJumping &&
+      this.isDown &&
+      this.touchedPlatform == null
+    ) {
       this.anims.play(this.key + "-down", true);
+    } else if (
+      //@ts-ignore
+      this.keys.get("UP").isDown &&
+      !this.isJumping &&
+      this.touchedPlatform == null &&
+      //@ts-ignore
+      !this.keys.get("RIGHT").isDown &&
+      //@ts-ignore
+      !this.keys.get("LEFT").isDown &&
+      this.isSearch()
+    ) {
+      this.anims.play(this.key + "-search", true);
     } else if (
       //@ts-ignore
       this.body.onFloor() ||
@@ -365,6 +403,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   isJump(): boolean {
     return this.isJumping;
+  }
+
+  isSearch(): boolean {
+    return this.isSearching;
+  }
+
+  setSearch(search: boolean): void {
+    this.isSearching = search;
   }
 
   private handleTouchInput(time: number, delta: number) {

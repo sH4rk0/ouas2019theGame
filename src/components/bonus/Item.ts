@@ -14,8 +14,10 @@ export class Item extends Phaser.Physics.Arcade.Sprite {
     this.currentScene = <GamePlay>params.scene;
     this.name = "Item";
     this.initItem();
-    this.searchValue = 150;
-    this.startValue = 150;
+    this.setFrame(Phaser.Math.RND.integerInRange(0, 1));
+
+    this.searchValue = Phaser.Math.RND.integerInRange(100, 200);
+    this.startValue = this.searchValue;
 
     this.currentScene.add.existing(this);
   }
@@ -54,6 +56,7 @@ export class Item extends Phaser.Physics.Arcade.Sprite {
         onComplete: () => {
           this.currentScene.searching.setPosition(-100, -100);
           this.destroy();
+          this.currentScene.player.setSearch(false);
         }
       });
     }

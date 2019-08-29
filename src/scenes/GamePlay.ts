@@ -322,13 +322,15 @@ export default class GamePlay extends Phaser.Scene {
     // console.log(this.tileset);
 
     this.layer = this.map.createStaticLayer("world", this.tileset, 0, 0);
-    this.layer2 = this.map.createDynamicLayer("collision", this.tileset, 0, 0);
+
     this.layer3 = this.map.createStaticLayer("over", this.tileset, 0, 0);
+    this.layer2 = this.map.createDynamicLayer("collision", this.tileset, 0, 0);
 
     this.layer2.setCollisionByProperty({
       collide: true
     });
     this.layer3.setDepth(10);
+
     //@ts-ignore
     this.animatedTiles.init(this.map);
 
@@ -554,16 +556,16 @@ export default class GamePlay extends Phaser.Scene {
 
   setUpItems(): void {
     this.groupItems = this.add.group({ runChildUpdate: true });
-    const enemiesObject = this.map.getObjectLayer("items").objects as any[];
+    const itemsObject = this.map.getObjectLayer("items").objects as any[];
 
-    enemiesObject.forEach((item: any) => {
+    itemsObject.forEach((item: any) => {
       switch (item.name) {
         case "item":
-          console.log(item);
+          //console.log(item);
           this.groupItems.add(
             new Item({
               scene: this,
-              key: "statue",
+              key: "items",
               x: item.x,
               y: item.y
             })
@@ -586,11 +588,21 @@ export default class GamePlay extends Phaser.Scene {
     const _item: Item = <Item>_obj2;
 
     //console.log(_player.body.blocked);
-    //@ts-ignore
-    if (_player.keys.get("UP").isDown) {
+
+    if (
+      //@ts-ignore
+      _player.keys.get("UP").isDown &&
+      //@ts-ignore
+      !_player.keys.get("RIGHT").isDown &&
+      //@ts-ignore
+      !_player.keys.get("LEFT").isDown
+    ) {
+      _player.setSearch(true);
       _item.searching();
     } else {
+      _player.setSearch(false);
       _item.stopSearching();
+      //_player.play("player-idle", true);
     }
   }
 
