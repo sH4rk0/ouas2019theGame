@@ -8,6 +8,7 @@ import GamePlay from "../scenes/GamePlay";
 import Joy from "../scenes/Joy";
 import { Platform } from "./obstacles/Platform";
 import { Lift } from "./obstacles/Lift";
+import { Item } from "./bonus/Item";
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   private currentScene: GamePlay;
@@ -15,42 +16,68 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private isJumping: boolean = false;
   private isDown: boolean = false;
   private stillDown: boolean = false;
+
   private isDying: boolean = false;
   private key: string;
   private commands: boolean;
   private inGame: boolean;
-  private jumpTimer: number;
   private JoyScene: Joy;
   private touchingPlatform: boolean;
   private touchedPlatform: Platform | Lift | null;
   private platformVelocity: number;
   private isSearching: boolean = false;
+  private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
 
-  //@ts-ignore
-  public keys: Map<string, Phaser.Input.Keyboard.Key>;
-  //@ts-ignore
-  public getKeys(): Map<string, Phaser.Input.Keyboard.Key> {
-    return this.keys;
-  }
+  private playerAnimations: any = [
+    {
+      name: "idle",
+      frames: [0, 1, 2, 3],
+      framerate: 6,
+      yoyo: false,
+      repeat: -1
+    },
+    {
+      name: "run",
+      frames: [10, 11, 12, 13, 14, 15, 16, 17],
+      framerate: 10,
+      yoyo: false,
+      repeat: -1
+    },
+    {
+      name: "jump",
+      frames: [21, 22, 23, 24, 25, 26, 27, 28, 26, 27, 28, 26, 27, 28],
+      framerate: 10,
+      yoyo: false,
+      repeat: -1
+    },
+
+    {
+      name: "down",
+      frames: [20, 33, 34],
+      framerate: 80,
+      yoyo: false,
+      repeat: 0
+    },
+    {
+      name: "search",
+      frames: [30, 31, 32],
+      framerate: 6,
+      yoyo: true,
+      repeat: -1
+    }
+  ];
 
   constructor(config: PlayerConfig) {
     super(config.scene, config.x, config.y, config.key);
-
-    //console.log(config.key);
     this.inGame = config.inGame;
     if (config.physic) {
       config.scene.physics.world.enable(this);
       this.platformVelocity = 0;
-      //@ts-ignore
-      this.body.maxVelocity.x = 300;
-      //@ts-ignore
-      this.body.maxVelocity.y = 800;
-      //@ts-ignore
+      this.setMaxVelocity(300, 800);
       this.body.setSize(20, 48);
-      //@ts-ignore
       this.body.setOffset(15, 20);
-      //@ts-ignore
       this.setBounce(0);
+      this.setDepth(9);
     }
 
     if (config.scene.sys.game.device.input.touch) {
@@ -63,76 +90,29 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.key = config.key;
     this.name = config.name;
 
-    let _idleConfig: Phaser.Types.Animations.Animation = {
-      key: this.key + "-idle",
+    let _animationConfig: Phaser.Types.Animations.Animation;
+    this.playerAnimations.forEach((element: any) => {
+      _animationConfig = {
+        key: this.key + "-" + element.name,
 
-      frames: this.currentScene.anims.generateFrameNumbers(this.key, {
-        frames: [0, 1, 2, 3]
-      }),
-      frameRate: 6,
-      yoyo: false,
-      repeat: -1
-    };
-    this.currentScene.anims.create(_idleConfig);
+        frames: this.currentScene.anims.generateFrameNumbers(this.key, {
+          frames: element.frames
+        }),
+        frameRate: element.framerate,
+        yoyo: element.yoyo,
+        repeat: element.repeat
+      };
 
-    let _runConfig: Phaser.Types.Animations.Animation = {
-      key: this.key + "-run",
-
-      frames: this.currentScene.anims.generateFrameNumbers(this.key, {
-        frames: [10, 11, 12, 13, 14, 15, 16, 17]
-      }),
-      frameRate: 10,
-      yoyo: false,
-      repeat: -1
-    };
-
-    this.currentScene.anims.create(_runConfig);
-
-    let _jumpConfig: Phaser.Types.Animations.Animation = {
-      key: this.key + "-jump",
-      frames: this.currentScene.anims.generateFrameNumbers(this.key, {
-        frames: [21, 22, 23, 24, 25, 26, 27, 28, 26, 27, 28, 26, 27, 28]
-      }),
-      frameRate: 6,
-      yoyo: false,
-      repeat: 0
-    };
-
-    this.currentScene.anims.create(_jumpConfig);
-
-    let _downConfig: Phaser.Types.Animations.Animation = {
-      key: this.key + "-down",
-      frames: this.currentScene.anims.generateFrameNumbers(this.key, {
-        frames: [20, 33]
-      }),
-      frameRate: 8,
-      yoyo: false,
-      repeat: 0
-    };
-
-    this.currentScene.anims.create(_downConfig);
-
-    let _searchConfig: Phaser.Types.Animations.Animation = {
-      key: this.key + "-search",
-      frames: this.currentScene.anims.generateFrameNumbers(this.key, {
-        frames: [30, 31, 32]
-      }),
-      frameRate: 6,
-      yoyo: true,
-      repeat: -1
-    };
-
-    this.currentScene.anims.create(_searchConfig);
+      this.currentScene.anims.create(_animationConfig);
+    });
 
     this.setOrigin(0.5, 0.5);
     this.setFlipX(false);
-    this.keys = new Map([
-      ["LEFT", this.addKey("LEFT")],
-      ["RIGHT", this.addKey("RIGHT")],
-      ["JUMP", this.addKey("SPACE")],
-      ["DOWN", this.addKey("DOWN")],
-      ["UP", this.addKey("UP")]
-    ]);
+
+    this.cursors = this.currentScene.input.keyboard.createCursorKeys();
+
+    if (this.cursors.left != null && this.cursors.left.isDown) {
+    }
 
     this.setInteractive();
 
@@ -141,158 +121,140 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.currentScene.add.existing(this);
   }
 
-  private addKey(key: string): Phaser.Input.Keyboard.Key {
-    return this.currentScene.input.keyboard.addKey(key);
-  }
-
   update(time: number, delta: number) {
     if (!this.isDying && this.commands && this.body != undefined) {
-      //console.log('update', this.isDying)
-
-      if (this.currentScene.sys.game.device.input.touch) {
-        this.handleTouchInput(time, delta);
+      this.handleInput(time, delta);
+      /*if (this.currentScene.sys.game.device.input.touch) {
+        //this.handleTouchInput(time, delta);
       } else {
         this.handleInput(time, delta);
-      }
+      }*/
       this.handleAnimations();
     }
-
-    if (this.body.touching.none) {
-      //this.touchingPlatform = false;
-    }
-    //if (this.body != undefined) this.setDepth(this.y);
-    this.setDepth(9);
   }
 
   private handleInput(time: number, delta: number) {
-    if (!this.commands || this.isDying || this.body == undefined) return;
-    //@ts-ignore
-    if (
-      //@ts-ignore
-      this.body.onFloor() ||
-      //@ts-ignore
-      // (this.body.touching.down && this.touchingPlatform) ||
-      //@ts-ignore
-      this.body.blocked.down
-    ) {
-      this.isJumping = false;
+    //if (!this.commands || this.isDying || this.body == undefined) return;
 
-      //@ts-ignore
-      this.body.setAccelerationY(0);
-      //@ts-ignore
-      this.body.setVelocityY(0);
+    if (this.isBodyOnFloor() || this.body.blocked.down) {
+      this.isJumping = false;
+      this.setAccelerationX(0);
+      this.setVelocityY(0);
     }
 
-    if (
-      //@ts-ignore
-      this.keys.get("JUMP").isDown &&
-      !this.isJumping
-    ) {
+    if (this.spaceIsDown() && !this.isJumping) {
       this.jump();
     }
 
-    // handle movements to left and right
-    //@ts-ignore
-    if (this.keys.get("RIGHT").isDown) {
-      //@ts-ignore
+    //run right
+    ///////////////////////////////////
+    if (this.rightIsDown()) {
       this.body.setSize(20, 48);
       this.body.setOffset(25, 20);
-      //@ts-ignore
-      this.body.setAccelerationX(this.acceleration);
+      this.setAccelerationX(this.acceleration);
       this.setFlipX(false);
-      //@ts-ignore
-    } else if (this.keys.get("LEFT").isDown) {
+    }
+
+    //run left
+    ///////////////////////////////////
+    else if (this.leftIsDown()) {
       this.body.setSize(20, 48);
       this.body.setOffset(15, 20);
-      //@ts-ignore
-      this.body.setAccelerationX(-this.acceleration);
+      this.setAccelerationX(-this.acceleration);
       this.setFlipX(true);
-      //@ts-ignore
-    } else if (this.keys.get("DOWN").isDown) {
-      //console.log("down");
-      //@ts-ignore
+    }
+
+    //set Down
+    ///////////////////////////////////
+    else if (
+      this.downIsDown() &&
+      !this.isDown &&
+      !this.isJumping &&
+      this.touchedPlatform == null
+    ) {
       this.body.setSize(20, 30);
       if (this.flipX) {
         this.body.setOffset(15, 38);
       } else {
         this.body.setOffset(25, 38);
       }
-      //@ts-ignore
-      this.body.setVelocityX(0);
-      //@ts-ignore
-      this.body.setAccelerationX(0);
-
+      this.setVelocityX(0);
+      this.setAccelerationX(0);
       this.isDown = true;
-    } else if (
-      //@ts-ignore
-      !this.keys.get("DOWN").isDown &&
-      //@ts-ignore
-      !this.keys.get("LEFT").isDown &&
-      //@ts-ignore
-      !this.keys.get("RIGHT").isDown &&
-      //@ts-ignore
-      !this.keys.get("UP").isDown
+    }
+
+    //set idle
+    ///////////////////////////////////
+    else if (
+      (this.noCursorDown() &&
+        (this.isBodyOnFloor ||
+          this.touchingPlatform ||
+          this.body.blocked.down) &&
+        !this.isJumping &&
+        !this.isSearching) ||
+      (!this.leftIsDown() &&
+        !this.rightIsDown() &&
+        (this.isBodyOnFloor ||
+          this.touchingPlatform ||
+          this.body.blocked.down) &&
+        !this.isJumping &&
+        !this.isSearching &&
+        !this.isDown) ||
+      this.moreCursorDown()
     ) {
-      //console.log("not key");
       this.body.setSize(20, 48);
+
       if (this.flipX) {
         this.body.setOffset(15, 20);
       } else {
         this.body.setOffset(25, 20);
       }
 
-      //@ts-ignore
-      this.body.setVelocityX(0);
-      //@ts-ignore
-      this.body.setAccelerationX(0);
+      this.setVelocityX(0);
+      this.setAccelerationX(0);
       this.isDown = false;
       this.stillDown = false;
+      this.isSearching = false;
     }
 
+    //cursor down on a lift platform
+    ///////////////////////////////////
     if (
-      //@ts-ignore
-      this.keys.get("DOWN").isDown &&
+      this.downIsDown() &&
       !this.isJumping &&
       this.touchedPlatform != null &&
       this.touchedPlatform.isTriggered() &&
-      !this.touchedPlatform.isMoving() &&
-      //@ts-ignore
-      !this.keys.get("RIGHT").isDown &&
-      //@ts-ignore
-      !this.keys.get("LEFT").isDown
+      !this.touchedPlatform.isMoving()
     ) {
+      this.isDown = true;
       this.touchedPlatform.trigger(2);
     }
 
+    //cursor up on a lift platform
+    ///////////////////////////////////
     if (
-      //@ts-ignore
-      this.keys.get("UP").isDown &&
+      this.upIsDown() &&
       !this.isJumping &&
       this.touchedPlatform != null &&
       this.touchedPlatform.isTriggered() &&
-      !this.touchedPlatform.isMoving() &&
-      //@ts-ignore
-      !this.keys.get("RIGHT").isDown &&
-      //@ts-ignore
-      !this.keys.get("LEFT").isDown
+      !this.touchedPlatform.isMoving()
     ) {
+      this.isDown = true;
       this.touchedPlatform.trigger(0);
     }
   }
 
   private handleAnimations(): void {
     if (!this.commands || this.isDying || this.body == undefined) return;
-    //@ts-ignore
+
     if (
       this.body.velocity.y !== 0 &&
       !this.body.blocked.down &&
       !this.touchingPlatform
     ) {
       this.anims.play(this.key + "-jump", true);
-      //@ts-ignore
     } else if (this.body.velocity.x !== 0 && !this.isJumping) {
       this.anims.play(this.key + "-run", true);
-      //@ts-ignore
     } else if (
       this.body.velocity.x === 0 &&
       !this.isJumping &&
@@ -300,33 +262,20 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.isDown &&
       !this.stillDown
     ) {
-      //console.log("down anim");
       this.stillDown = true;
-      this.anims.play(this.key + "-down", false);
-    } else if (
-      //@ts-ignore
-      this.keys.get("UP").isDown &&
-      !this.isJumping &&
-      this.touchedPlatform == null &&
-      //@ts-ignore
-      !this.keys.get("RIGHT").isDown &&
-      //@ts-ignore
-      !this.keys.get("LEFT").isDown &&
-      this.isSearch()
-    ) {
+      this.anims.play(this.key + "-down", true);
+    } else if (this.isSearch()) {
       this.anims.play(this.key + "-search", true);
     } else if (
-      //@ts-ignore
-      (this.body.onFloor() ||
-        //@ts-ignore
-        this.touchingPlatform ||
-        //@ts-ignore
-        this.body.blocked.down) &&
-      !this.isDown &&
-      !this.isJumping &&
-      !this.isSearching
+      (this.noCursorDown() &&
+        (this.isBodyOnFloor() ||
+          this.touchingPlatform ||
+          this.body.blocked.down) &&
+        !this.isDown &&
+        !this.isJumping &&
+        !this.isSearching) ||
+      this.moreCursorDown()
     ) {
-      //console.log("idle");
       this.anims.play(this.key + "-idle", true);
     }
   }
@@ -340,8 +289,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   setMovable(): void {
     this.commands = true;
-    //@ts-ignore
-    this.body.setImmovable(false);
+    this.setImmovable(false);
   }
 
   setCommands(command: boolean): void {
@@ -349,9 +297,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   jumpOverEnemy() {
-    // console.log('jumpOverEnemy')
-    //@ts-ignore
-    this.body.setVelocityY(-600);
+    this.setVelocityY(-600);
   }
 
   isActive(): boolean {
@@ -359,10 +305,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   die(): void {
-    //console.log('die')
     this.isDying = true;
-    //console.log(this.isDying)
-
     let _die: Phaser.GameObjects.Sprite = this.currentScene.add
       .sprite(this.x, this.y, this.key, 10)
       .setScale(2)
@@ -398,7 +341,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   gameOver(): void {
-    // console.log('gameover')
     this.destroy(true);
   }
 
@@ -406,8 +348,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.touchingPlatform = true;
     this.isJumping = false;
     this.touchedPlatform = _platform;
-    //this.y = this.y + 10;
-    //console.log(_platform);
   }
 
   notTouchingPlatform() {
@@ -432,63 +372,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.isSearching = search;
   }
 
-  private handleTouchInput(time: number, delta: number) {
-    if (!this.commands || this.isDying || this.body == undefined) return;
-    //@ts-ignore
-    if (
-      //@ts-ignore
-      this.body.onFloor() ||
-      //@ts-ignore
-      //this.body.touching.down ||
-      //@ts-ignore
-      this.body.blocked.down
-    ) {
-      this.isJumping = false;
-      //@ts-ignore
-      this.body.setVelocityY(0);
-    }
-
-    //@ts-ignore
-    if (this.JoyScene.stick && this.JoyScene.stick.direction === Phaser.RIGHT) {
-      //@ts-ignore
-      if (this.inGame) this.body.setOffset(25, 20);
-      //@ts-ignore
-      this.body.setAccelerationX(this.acceleration);
-      this.setFlipX(false);
-      //@ts-ignore
-    } else if (
-      this.JoyScene.stick &&
-      this.JoyScene.stick.direction === Phaser.LEFT
-    ) {
-      //@ts-ignore
-      if (this.inGame) this.body.setOffset(15, 20);
-      //@ts-ignore
-      this.body.setAccelerationX(-this.acceleration);
-      this.setFlipX(true);
-      this.isDown = false;
-    } else {
-      //@ts-ignore
-      this.body.setVelocityX(0);
-      //@ts-ignore
-      this.body.setAccelerationX(0);
-      this.body.velocity.y = 0;
-    }
-
-    this.jumpTimer -= delta;
-
-    //@ts-ignore
-    if (this.JoyScene.jump.isDown && (!this.isJumping || this.jumpTimer > 0)) {
-      this.jump();
-      //@ts-ignore
-    } else if (!this.JoyScene.jump.isDown) {
-      this.jumpTimer = -1; // Don't resume jump if button is released, prevents mini double-jumps
-      //@ts-ignore
-      if (this.body.blocked.down) {
-        this.isJumping = false;
-      }
-    }
-  }
-
   private jump() {
     if (!this.isJumping) {
       this.currentScene.sound.playAudioSprite("sfx", "smb_jump-small", {
@@ -496,7 +379,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       });
     }
 
-    //@ts-ignore
     if (
       this.body.velocity.y <= 0 ||
       (this.body.touching.down && this.touchingPlatform) ||
@@ -506,14 +388,158 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.touchingPlatform = false;
       this.touchedPlatform = null;
 
-      console.log(-600 + this.platformVelocity);
-      //@ts-ignore
-      this.body.setVelocityY(-600 + this.platformVelocity * -1);
+      this.setVelocityY(-600 + this.platformVelocity * -1);
     }
     this.isJumping = true;
   }
 
   addVelocity(velocity: number): void {
     this.platformVelocity = velocity;
+  }
+
+  spaceIsDown(): boolean {
+    if (this.JoyScene == undefined) {
+      if (this.cursors.space != null && this.cursors.space.isDown) return true;
+      return false;
+    } else if (this.JoyScene.jump && this.JoyScene.jump.isDown) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  isBodyOnFloor(): boolean {
+    //@ts-ignore
+    return this.body.onFloor();
+  }
+
+  downIsDown(): boolean {
+    if (this.JoyScene == undefined) {
+      if (
+        this.cursors.down != null &&
+        this.cursors.down.isDown &&
+        (this.cursors.up != null && !this.cursors.up.isDown) &&
+        (this.cursors.left != null && !this.cursors.left.isDown) &&
+        (this.cursors.right != null && !this.cursors.right.isDown)
+      )
+        return true;
+      return false;
+    } else if (
+      //this.JoyScene.stick &&
+      //this.JoyScene.stick.direction === Phaser.DOWN
+      this.JoyScene.down &&
+      this.JoyScene.down.isDown
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  upIsDown(): boolean {
+    if (this.JoyScene == undefined) {
+      if (
+        this.cursors.up != null &&
+        this.cursors.up.isDown &&
+        (this.cursors.down != null && !this.cursors.down.isDown) &&
+        (this.cursors.left != null && !this.cursors.left.isDown) &&
+        (this.cursors.right != null && !this.cursors.right.isDown)
+      )
+        return true;
+      return false;
+    } else if (
+      //this.JoyScene.stick &&
+      //this.JoyScene.stick.direction === Phaser.UP
+      this.JoyScene.up &&
+      this.JoyScene.up.isDown
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  leftIsDown(): boolean {
+    if (this.JoyScene == undefined) {
+      if (
+        this.cursors.left != null &&
+        this.cursors.left.isDown &&
+        (this.cursors.up != null && !this.cursors.up.isDown) &&
+        (this.cursors.down != null && !this.cursors.down.isDown) &&
+        (this.cursors.right != null && !this.cursors.right.isDown)
+      )
+        return true;
+      return false;
+    } else if (
+      //this.JoyScene.stick &&
+      //this.JoyScene.stick.direction === Phaser.LEFT
+      this.JoyScene.left &&
+      this.JoyScene.left.isDown
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  rightIsDown(): boolean {
+    if (this.JoyScene == undefined) {
+      if (
+        this.cursors.right != null &&
+        this.cursors.right.isDown &&
+        (this.cursors.up != null && !this.cursors.up.isDown) &&
+        (this.cursors.down != null && !this.cursors.down.isDown) &&
+        (this.cursors.left != null && !this.cursors.left.isDown)
+      )
+        return true;
+      return false;
+    } else if (
+      //this.JoyScene.stick &&
+      //this.JoyScene.stick.direction === Phaser.RIGHT
+      this.JoyScene.right &&
+      this.JoyScene.right.isDown
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  moreCursorDown(): boolean {
+    if (
+      (this.cursors.left != null &&
+        this.cursors.left.isDown &&
+        ((this.cursors.up != null && this.cursors.up.isDown) ||
+          (this.cursors.down != null && this.cursors.down.isDown) ||
+          (this.cursors.right != null && this.cursors.right.isDown))) ||
+      (this.cursors.right != null &&
+        this.cursors.right.isDown &&
+        ((this.cursors.up != null && this.cursors.up.isDown) ||
+          (this.cursors.down != null && this.cursors.down.isDown) ||
+          (this.cursors.left != null && this.cursors.left.isDown))) ||
+      (this.cursors.up != null &&
+        this.cursors.up.isDown &&
+        ((this.cursors.right != null && this.cursors.right.isDown) ||
+          (this.cursors.down != null && this.cursors.down.isDown) ||
+          (this.cursors.left != null && this.cursors.left.isDown))) ||
+      (this.cursors.down != null &&
+        this.cursors.down.isDown &&
+        ((this.cursors.right != null && this.cursors.right.isDown) ||
+          (this.cursors.up != null && this.cursors.up.isDown) ||
+          (this.cursors.left != null && this.cursors.left.isDown)))
+    )
+      return true;
+    return false;
+  }
+
+  noCursorDown(): boolean {
+    if (
+      this.cursors.left != null &&
+      !this.cursors.left.isDown &&
+      (this.cursors.up != null && !this.cursors.up.isDown) &&
+      (this.cursors.down != null && !this.cursors.down.isDown) &&
+      (this.cursors.right != null && !this.cursors.right.isDown)
+    )
+      return true;
+    return false;
   }
 }

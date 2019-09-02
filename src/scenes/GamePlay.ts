@@ -90,6 +90,9 @@ export default class GamePlay extends Phaser.Scene {
 
   create() {
     //console.log("create gameplay");
+
+    this.lights.enable();
+
     this.clouds = [];
 
     this.level = GameData.levels[this.registry.get("level") - 1];
@@ -146,8 +149,6 @@ export default class GamePlay extends Phaser.Scene {
     this.setUpLevel();
 
     //this.events.emit("startTimer");
-
-    this.cameras.main.fadeIn();
 
     this.mist1 = this.add
       .tileSprite(640, 780, 1280, 88, "mist1")
@@ -289,6 +290,8 @@ export default class GamePlay extends Phaser.Scene {
       loop: true
     });
     */
+
+    this.cameras.main.fadeIn();
   }
 
   update(time: number, delta: number): void {
@@ -331,6 +334,8 @@ export default class GamePlay extends Phaser.Scene {
     });
     this.layer3.setDepth(10);
 
+    //this.layer.setPipeline("Light2D");
+
     //@ts-ignore
     this.animatedTiles.init(this.map);
 
@@ -353,10 +358,9 @@ export default class GamePlay extends Phaser.Scene {
       this.map.heightInPixels * this.mapScaleFactor
     );
 
-    //@ts-ignore
+    /*
     this.blockEmitter = this.add.particles("brick");
 
-    //@ts-ignore
     this.blockEmitter.createEmitter({
       gravityY: 1600,
       lifespan: 2000,
@@ -368,6 +372,7 @@ export default class GamePlay extends Phaser.Scene {
       },
       frequency: -1
     });
+    */
 
     this.registry.values.time = this.level.time;
 
@@ -587,22 +592,16 @@ export default class GamePlay extends Phaser.Scene {
     const _player: Player = <Player>_obj1;
     const _item: Item = <Item>_obj2;
 
-    //console.log(_player.body.blocked);
-
     if (
-      //@ts-ignore
-      _player.keys.get("UP").isDown &&
-      //@ts-ignore
-      !_player.keys.get("RIGHT").isDown &&
-      //@ts-ignore
-      !_player.keys.get("LEFT").isDown
+      _player.upIsDown() &&
+      !_player.isJump() &&
+      _player.body.velocity.x == 0
     ) {
       _player.setSearch(true);
       _item.searching();
-    } else {
+    } else if (!_player.upIsDown()) {
       _player.setSearch(false);
       _item.stopSearching();
-      //_player.play("player-idle", true);
     }
   }
 

@@ -1,10 +1,3 @@
-/**
- * @author       Francesco Raimondo <francesco.raimondo@gmail.com>
- * @copyright    2019 zero89
- * @description  Run4Mayor
- * @license      zero89
- */
-
 import "phaser";
 import Boot from "./scenes/Boot";
 import Preloader from "./scenes/Preloader";
@@ -54,7 +47,7 @@ window.addEventListener("load", () => {
     physics: {
       default: "arcade",
       arcade: {
-        debug: false,
+        debug: true,
         gravity: { y: 1600 }
       }
     },
