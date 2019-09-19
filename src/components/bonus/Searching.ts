@@ -21,12 +21,9 @@ export class Searching extends Phaser.GameObjects.Container {
     this.searchText = this.currentScene.add
       .bitmapText(0, 0, "commodore", `Searching`, 16)
       .setTint(0x00000);
-
     Phaser.Display.Align.In.Center(this.searchText, this.searchBox, 0, -20);
     Phaser.Display.Align.In.Center(this.searchBar, this.searchBox, 0, 20);
-
     this.add([this.searchBox, this.searchBar, this.searchText]);
-
     this.currentScene.add.existing(this);
   }
 
@@ -34,5 +31,32 @@ export class Searching extends Phaser.GameObjects.Container {
 
   setValue(start: number, current: number): void {
     this.searchBar.setDisplaySize((current * 200) / start, 20);
+  }
+
+  show(values: { startValue: number; currentValue: number }): void {
+    this.searchText.setText("Searching");
+    this.setValue(values.startValue, values.currentValue);
+    this.setPosition(
+      this.currentScene.player.x,
+      this.currentScene.player.y - 64
+    );
+  }
+  hide(): void {
+    this.setPosition(-100, -100);
+  }
+
+  setResult(found: number): void {
+    //0: nothing
+    //1: trigger
+    //2: random
+
+    this.searchText.setText("You found: an hidden ");
+
+    this.currentScene.time.addEvent({
+      delay: 1000,
+      callback: () => {
+        this.hide();
+      }
+    });
   }
 }

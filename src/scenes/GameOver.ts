@@ -278,6 +278,7 @@ export default class GameOver extends Phaser.Scene {
       y: 80
     });
 
+    //@ts-ignore
     this.add.tween({
       targets: [_G, _A, _M, _E, _O, _V, _e, _R],
 

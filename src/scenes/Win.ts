@@ -181,6 +181,7 @@ export default class Win extends Phaser.Scene {
       y: 280
     });
 
+    //@ts-ignore
     this.add.tween({
       targets: [_T, _H, _E, _space, _e, _N, _D],
 

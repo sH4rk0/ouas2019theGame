@@ -16,6 +16,7 @@ import { Item } from "../components/bonus/Item";
 import { EnemyGeneric } from "../components/enemies/Enemy.Generic";
 import { GameData } from "../GameData";
 import { Searching } from "../components/bonus/Searching";
+import { TriggerExecuter } from "../components/obstacles/TriggerExecuter";
 
 export default class GamePlay extends Phaser.Scene {
   public player: Player;
@@ -27,6 +28,8 @@ export default class GamePlay extends Phaser.Scene {
   public layer2: Phaser.Tilemaps.DynamicTilemapLayer;
   public layer3: Phaser.Tilemaps.StaticTilemapLayer;
   public currentPlayer: Player;
+  private groupItemsArray: Array<Array<Item>>;
+  public triggerExecuter: TriggerExecuter;
 
   private bg: Phaser.GameObjects.TileSprite;
   private bg2: Phaser.GameObjects.TileSprite;
@@ -90,7 +93,7 @@ export default class GamePlay extends Phaser.Scene {
 
   create() {
     //console.log("create gameplay");
-
+    this.triggerExecuter = new TriggerExecuter(this);
     this.lights.enable();
 
     this.clouds = [];
@@ -303,9 +306,15 @@ export default class GamePlay extends Phaser.Scene {
         this.bg2.tilePositionX = (this.cameras.main.scrollX + 640) * 0.1;
         this.bg3.tilePositionX = this.cameras.main.scrollX * 0.3;
 
-        this.mist1.tilePositionX = this.mist1.tilePositionX + 0.15;
-        this.mist2.tilePositionX = this.mist2.tilePositionX + 0.2;
-        this.mist3.tilePositionX = this.mist3.tilePositionX + 0.3;
+        /*if (this.player.ve) {
+          this.mist1.tilePositionX = this.mist1.tilePositionX + 0.15;
+          this.mist2.tilePositionX = this.mist2.tilePositionX + 0.2;
+          this.mist3.tilePositionX = this.mist3.tilePositionX + 0.3;
+        } else {
+          this.mist1.tilePositionX = this.mist1.tilePositionX - 0.15;
+          this.mist2.tilePositionX = this.mist2.tilePositionX - 0.2;
+          this.mist3.tilePositionX = this.mist3.tilePositionX - 0.3;
+        }*/
 
         /*console.log(this.player.body.velocity.y);
         if (this.player.body.velocity.y != 0 && this.player.isJump()) {
@@ -388,7 +397,7 @@ export default class GamePlay extends Phaser.Scene {
     this.setUpPlatforms();
     this.setUpItems();
 
-    this.searching = new Searching({ scene: this, x: 0, y: 0, key: "lift" });
+    this.searching = new Searching({ scene: this, x: 0, y: 0, key: "" });
     //this.setUpEnemies();
 
     this.player.setPlayerImmovable();
@@ -562,21 +571,32 @@ export default class GamePlay extends Phaser.Scene {
   setUpItems(): void {
     this.groupItems = this.add.group({ runChildUpdate: true });
     const itemsObject = this.map.getObjectLayer("items").objects as any[];
-
+    this.groupItemsArray = [[], []];
+    let _item: Item;
+    let _options: any;
     itemsObject.forEach((item: any) => {
       switch (item.name) {
         case "item":
-          //console.log(item);
-          this.groupItems.add(
-            new Item({
-              scene: this,
-              key: "items",
-              x: item.x,
-              y: item.y
-            })
-          );
+          _options = JSON.parse(item.type);
+          _item = new Item({
+            scene: this,
+            key: "items",
+            x: item.x,
+            y: item.y,
+            options: _options
+          });
+
+          this.groupItemsArray[_options.key].push(_item);
+          this.groupItems.add(_item);
+
           break;
       }
+    });
+    //console.log(this.groupItemsArray);
+
+    this.groupItemsArray.forEach((element: Array<Item>) => {
+      let _item: Item = Phaser.Utils.Array.GetRandom(element);
+      _item.setKey();
     });
 
     this.physics.add.overlap(

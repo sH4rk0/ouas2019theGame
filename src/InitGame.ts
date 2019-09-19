@@ -1,8 +1,7 @@
 import "phaser";
 import Boot from "./scenes/Boot";
 import Preloader from "./scenes/Preloader";
-import Menu from "./scenes/Menu";
-import Level from "./scenes/Level";
+
 import GamePlay from "./scenes/GamePlay";
 import Hud from "./scenes/Hud";
 import Joy from "./scenes/Joy";
@@ -43,7 +42,7 @@ window.addEventListener("load", () => {
       width: DEFAULT_WIDTH,
       height: DEFAULT_HEIGHT
     },
-    scene: [Boot, Preloader, Menu, Level, GamePlay, Hud, Joy, GameOver, Win],
+    scene: [Boot, Preloader, GamePlay, Hud, Joy, GameOver, Win],
     physics: {
       default: "arcade",
       arcade: {

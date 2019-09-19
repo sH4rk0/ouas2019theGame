@@ -142,6 +142,7 @@ interface ItemConfig {
   x: number;
   y: number;
   key: string;
+  options: any;
 }
 
 interface SearchingConfig {

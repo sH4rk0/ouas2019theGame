@@ -5,6 +5,8 @@ export class Item extends Phaser.Physics.Arcade.Sprite {
   protected currentScene: GamePlay;
   protected searchValue: number;
   protected startValue: number;
+  protected hasKey: boolean;
+  protected options: any;
 
   constructor(params: ItemConfig) {
     super(params.scene, params.x, params.y, params.key);
@@ -12,7 +14,9 @@ export class Item extends Phaser.Physics.Arcade.Sprite {
     // variables
 
     this.currentScene = <GamePlay>params.scene;
+    this.options = params.options;
     this.name = "Item";
+    this.hasKey = false;
     this.initItem();
     this.setFrame(Phaser.Math.RND.integerInRange(0, 1));
 
@@ -33,20 +37,34 @@ export class Item extends Phaser.Physics.Arcade.Sprite {
   }
 
   stopSearching(): void {
-    this.currentScene.searching.setPosition(-100, -100);
+    //this.currentScene.searching.setPosition(-100, -100);
+    this.currentScene.searching.hide();
+  }
+
+  setKey(): void {
+    this.hasKey = true;
   }
 
   searching(): void {
     this.searchValue -= 1;
 
-    this.currentScene.searching.setValue(this.startValue, this.searchValue);
+    this.currentScene.searching.show({
+      startValue: this.startValue,
+      currentValue: this.searchValue
+    });
+
+    /*this.currentScene.searching.setValue(this.startValue, this.searchValue);
 
     this.currentScene.searching.setPosition(
       this.currentScene.player.x,
       this.currentScene.player.y - 64
-    );
+    );*/
 
     if (this.searchValue == 0) {
+      if (this.hasKey) {
+        console.log(this.options.trigger);
+        this.currentScene.triggerExecuter.execute(this.options.trigger);
+      }
       this.currentScene.physics.world.disable(this);
 
       this.currentScene.tweens.add({
@@ -54,12 +72,14 @@ export class Item extends Phaser.Physics.Arcade.Sprite {
         alpha: 0,
         duration: 200,
         onComplete: () => {
-          this.currentScene.searching.setPosition(-100, -100);
+          this.currentScene.searching.setResult(0);
+          //this.currentScene.searching.setPosition(-100, -100);
           this.destroy();
           this.currentScene.player.setSearch(false);
         }
       });
     }
+
     /*
     this.currentScene.add.tween({
       targets: scoreText,
