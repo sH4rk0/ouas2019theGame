@@ -53,16 +53,8 @@ export class Item extends Phaser.Physics.Arcade.Sprite {
       currentValue: this.searchValue
     });
 
-    /*this.currentScene.searching.setValue(this.startValue, this.searchValue);
-
-    this.currentScene.searching.setPosition(
-      this.currentScene.player.x,
-      this.currentScene.player.y - 64
-    );*/
-
     if (this.searchValue == 0) {
       if (this.hasKey) {
-        console.log(this.options.trigger);
         this.currentScene.triggerExecuter.execute(this.options.trigger);
       }
       this.currentScene.physics.world.disable(this);
@@ -72,8 +64,11 @@ export class Item extends Phaser.Physics.Arcade.Sprite {
         alpha: 0,
         duration: 200,
         onComplete: () => {
-          this.currentScene.searching.setResult(0);
-          //this.currentScene.searching.setPosition(-100, -100);
+          if (this.hasKey) {
+            this.currentScene.searching.setResult(1);
+          } else {
+            this.currentScene.searching.setResult(0);
+          }
           this.destroy();
           this.currentScene.player.setSearch(false);
         }

@@ -375,7 +375,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private jump() {
     if (!this.isJumping) {
       this.currentScene.sound.playAudioSprite("sfx", "smb_jump-small", {
-        volume: 0.3
+        volume: 0.05
       });
     }
 

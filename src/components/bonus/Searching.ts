@@ -6,7 +6,7 @@ export class Searching extends Phaser.GameObjects.Container {
   protected searchValue: number;
   protected searchBox: Phaser.GameObjects.Image;
   protected searchBar: Phaser.GameObjects.Image;
-  protected searchText: Phaser.GameObjects.BitmapText;
+  protected searchText: Phaser.GameObjects.Text;
   constructor(params: SearchingConfig) {
     super(params.scene);
 
@@ -18,9 +18,17 @@ export class Searching extends Phaser.GameObjects.Container {
     this.searchBox = this.currentScene.add.image(0, 0, "search-box");
     this.searchBar = this.currentScene.add.image(0, 0, "search-bar");
     this.searchBar.setOrigin(0, 1);
+
+    const _config = {
+      font: "15px",
+      fill: "#000000",
+      wordWrap: { width: 150, useAdvancedWrap: true }
+    };
+
     this.searchText = this.currentScene.add
-      .bitmapText(0, 0, "commodore", `Searching`, 16)
-      .setTint(0x00000);
+      .text(0, 0, `Searching`, _config)
+      .setFontFamily('"Press Start 2P"');
+
     Phaser.Display.Align.In.Center(this.searchText, this.searchBox, 0, -20);
     Phaser.Display.Align.In.Center(this.searchBar, this.searchBox, 0, 20);
     this.add([this.searchBox, this.searchBar, this.searchText]);
@@ -49,11 +57,19 @@ export class Searching extends Phaser.GameObjects.Container {
     //0: nothing
     //1: trigger
     //2: random
+    console.log(found);
+    switch (found) {
+      case 0:
+        this.searchText.setText("You found nothing!");
+        break;
 
-    this.searchText.setText("You found: an hidden ");
+      case 1:
+        this.searchText.setText("You found an hidden lever!");
+        break;
+    }
 
     this.currentScene.time.addEvent({
-      delay: 1000,
+      delay: 1500,
       callback: () => {
         this.hide();
       }

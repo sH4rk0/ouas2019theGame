@@ -167,6 +167,12 @@ export let GameData: any = {
 
   sounds: [
     {
+      name: "breeze",
+      paths: ["assets/sounds/breeze.ogg", "assets/sounds/breeze.m4a"],
+      volume: 1,
+      loop: false
+    },
+    {
       name: "intro",
       paths: ["assets/sounds/intro.ogg", "assets/sounds/intro.m4a"],
       volume: 1,
