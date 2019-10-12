@@ -78,8 +78,8 @@ export class Lift extends Phaser.GameObjects.Sprite {
 
   trigger(value: number): void {
     if (
-      (this.currentStep + 1 > this.steps.length && value == 0) ||
-      (this.currentStep - 1 < 0 && value == 2)
+      (this.currentStep - 1 < 0 && value == 2) ||
+      (this.currentStep == this.steps.length - 1 && value == 0)
     )
       return;
 
@@ -87,7 +87,7 @@ export class Lift extends Phaser.GameObjects.Sprite {
     if (value == 0) {
       this.liftTween = this.scene.tweens.add({
         targets: this,
-        y: this.y - this.steps[this.currentStep].r,
+        y: this.y - this.steps[this.currentStep].r * 32,
         duration: this.steps[this.currentStep].v,
         ease: "Sine.easeIn",
         onUpdate: (values: any) => {
@@ -99,12 +99,14 @@ export class Lift extends Phaser.GameObjects.Sprite {
         onComplete: () => {
           this.currentStep += 1;
           this._isMoving = false;
+
+          //console.log(value, this.currentStep, this.steps.length);
         }
       });
     } else {
       this.liftTween = this.scene.tweens.add({
         targets: this,
-        y: this.y + this.steps[this.currentStep - 1].r,
+        y: this.y + this.steps[this.currentStep - 1].r * 32,
         duration: this.steps[this.currentStep - 1].v,
         ease: "Sine.easeIn",
         onUpdate: (values: any) => {
@@ -116,6 +118,8 @@ export class Lift extends Phaser.GameObjects.Sprite {
         onComplete: () => {
           this.currentStep -= 1;
           this._isMoving = false;
+
+          // console.log(value, this.currentStep, this.steps.length);
         }
       });
     }

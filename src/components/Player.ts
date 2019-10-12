@@ -305,7 +305,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   die(): void {
+    if (this.isDying) return;
     this.isDying = true;
+    this.currentScene.cameras.main.stopFollow();
+    this.alpha = 0;
     let _die: Phaser.GameObjects.Sprite = this.currentScene.add
       .sprite(this.x, this.y, this.key, 10)
       .setScale(2)
@@ -333,11 +336,21 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       },
       onComplete: () => {
         _die.destroy();
+        console.log("end die");
+        //this.currentScene.respawn();
       },
       repeat: 0
     });
 
-    this.destroy(true);
+    //this.destroy(true);
+  }
+
+  respawn(respawn: Respawn) {
+    this.isDying = false;
+    this.alpha = 1;
+    this.x = respawn.x;
+    this.y = respawn.y;
+    this.currentScene.followPlayer();
   }
 
   gameOver(): void {

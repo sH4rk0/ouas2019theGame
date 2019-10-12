@@ -1,5 +1,6 @@
 import GamePlay from "../../scenes/GamePlay";
 import { TileAnimator } from "./TileAnimator";
+import { GameData } from "../../GameData";
 
 export class TriggerExecuter {
   private currentScene: GamePlay;
@@ -18,16 +19,46 @@ export class TriggerExecuter {
               if (tile.name === timelineElement.target) {
                 if (timelineElement.status != undefined)
                   this.status = timelineElement.status;
+
                 new TileAnimator(
                   this.currentScene,
                   tile,
-                  JSON.parse(tile.type),
+                  GameData.triggers[tile.name],
                   this.status
                 );
               }
             });
           },
           callbackScope: this
+        });
+
+        break;
+
+      case "doors-reset":
+        this.currentScene.mapDoors.forEach((tile: any, index: number) => {
+          new TileAnimator(
+            this.currentScene,
+            tile,
+            GameData.triggers[tile.name],
+            tile.type
+          );
+        });
+
+        break;
+
+      case "teleport":
+        this.currentScene.time.addEvent({
+          delay: timelineElement.delay,
+          callback: () => {
+            this.currentScene.mapTeleports.forEach(
+              (tile: any, index: number) => {
+                if (tile.name === timelineElement.target) {
+                  this.currentScene.player.setX(tile.x);
+                  this.currentScene.player.setY(tile.y);
+                }
+              }
+            );
+          }
         });
 
         break;
@@ -52,11 +83,29 @@ export class TriggerExecuter {
         });
         break;
 
-      //{"type":"switch","width":2,"height":6,"inactive":300,"status":"off","timelineOn":[{"type":"camera-shake","value":1,"delay":250},{"type":"door","target":"enter-door","status":"on","delay":0}],"timelineOff":[{"type":"door","target":"enter-door","status":"off","delay":0}]}
+      case "start-timer":
+        this.currentScene.time.addEvent({
+          delay: timelineElement.delay,
 
-      //{"type":"once","width":2,"height":6,"timeline":[{"type":"camera-shake","value":1,"delay":250},{"type":"door","target":"enter-door","status":"on","delay":0},{"type":"play-audio","delay":200,"key":"close-door"},{"type":"camera-zoom-in","delay":600,"duration":1000},{"type":"play-audio","delay":2000,"key":"anothervisitor","loop":false},{"type":"play-audio","delay":9000,"key":"loop","loop":true,"volume":0.2},{"type":"camera-zoom-out","delay":9000}]}
+          callback: () => {
+            this.currentScene.startTimer();
+          }
+        });
+        break;
+
+      case "play-music":
+        console.log("play-music", timelineElement.delay);
+        this.currentScene.time.addEvent({
+          delay: timelineElement.delay,
+
+          callback: () => {
+            this.currentScene.startMusic();
+          }
+        });
+        break;
 
       case "play-audio":
+        console.log("play-audio", timelineElement);
         this.currentScene.time.addEvent({
           delay: timelineElement.delay,
           callback: () => {
@@ -65,8 +114,6 @@ export class TriggerExecuter {
             if (timelineElement.volume != undefined)
               _volume = timelineElement.volume;
 
-            console.log(_volume);
-            //@ts-ignore
             this.currentScene.sound.add(timelineElement.key).play(undefined, {
               loop: timelineElement.loop,
               volume: _volume
@@ -81,6 +128,22 @@ export class TriggerExecuter {
         break;
 
       case "resume-audio":
+        break;
+
+      case "respawn":
+        this.currentScene.setRespawn(timelineElement.respawn);
+        break;
+
+      case "trigger-copy":
+        this.currentScene.time.addEvent({
+          delay: timelineElement.delay,
+
+          callback: () => {
+            GameData.triggers[timelineElement.to] =
+              GameData.triggers[timelineElement.from];
+          }
+        });
+
         break;
 
       case "camera-zoom-in":
@@ -159,14 +222,8 @@ export class TriggerExecuter {
                 this.currentScene.cameras.main.setZoom(tween.getValue());
               },
               onComplete: () => {
-                this.currentScene.cameras.main.startFollow(
-                  this.currentScene.player,
-                  false,
-                  0.08,
-                  0.08,
-                  undefined,
-                  32 * 4
-                );
+                this.currentScene.followPlayer();
+
                 this.currentScene.player.setMovable();
               }
             });

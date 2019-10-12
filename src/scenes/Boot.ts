@@ -39,7 +39,9 @@ export default class Boot extends Phaser.Scene {
       //setDevice(false);
     }
 
-    this.load.image("thelucasart", "assets/images/game/thelucasart.png");
+    //this.load.image("thelucasart", "assets/images/game/thelucasart.png");
+    this.load.image("intro", "assets/images/game/intro.png");
+    this.load.image("ouas", "assets/images/game/ouas.png");
     this.load.bitmapFont(
       "commodore",
       "assets/fonts/carrier_command.png",

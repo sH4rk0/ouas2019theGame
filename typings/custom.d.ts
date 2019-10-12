@@ -145,6 +145,12 @@ interface ItemConfig {
   options: any;
 }
 
+interface Respawn {
+  x: number;
+  y: number;
+  key: string;
+}
+
 interface SearchingConfig {
   scene: Phaser.Scene;
   x: number;

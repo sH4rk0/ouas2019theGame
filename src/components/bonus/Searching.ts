@@ -42,6 +42,7 @@ export class Searching extends Phaser.GameObjects.Container {
   }
 
   show(values: { startValue: number; currentValue: number }): void {
+    this.setAlpha(1);
     this.searchText.setText("Searching");
     this.setValue(values.startValue, values.currentValue);
     this.setPosition(
@@ -50,7 +51,14 @@ export class Searching extends Phaser.GameObjects.Container {
     );
   }
   hide(): void {
-    this.setPosition(-100, -100);
+    this.currentScene.tweens.add({
+      targets: this,
+      alpha: 0,
+      duration: 200,
+      onComplete: () => {
+        this.setPosition(-100, -100);
+      }
+    });
   }
 
   setResult(found: number): void {
@@ -60,7 +68,16 @@ export class Searching extends Phaser.GameObjects.Container {
     console.log(found);
     switch (found) {
       case 0:
-        this.searchText.setText("You found nothing!");
+        if (Phaser.Math.RND.integerInRange(0, 100) > 50) {
+          const _time = Phaser.Math.RND.integerInRange(10, 20);
+          this.currentScene.registry.values.time =
+            this.currentScene.registry.values.time + _time;
+          this.searchText.setText(`You found +${_time} time bonus`);
+          this.currentScene.respawnTime += _time;
+        } else {
+          this.searchText.setText("You found nothing!");
+        }
+
         break;
 
       case 1:

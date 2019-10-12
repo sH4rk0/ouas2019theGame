@@ -11,9 +11,10 @@ import { swEnabled } from "../InitGame";
 
 export default class Preloader extends Phaser.Scene {
   body: HTMLElement;
-  loading: Phaser.GameObjects.BitmapText;
+  loading: Phaser.GameObjects.Text;
   progress: Phaser.GameObjects.Graphics;
   logo: Phaser.GameObjects.Image;
+  ouas: Phaser.GameObjects.Image;
   constructor() {
     super({
       key: "Preloader"
@@ -29,16 +30,47 @@ export default class Preloader extends Phaser.Scene {
   init() {
     this.body = document.getElementsByTagName("body")[0];
     this.logo = this.add
-      .image(
-        this.game.canvas.width / 2,
-        this.game.canvas.height / 2 - 50,
-        "thelucasart"
-      )
-      .setAlpha(1);
+      .image(this.game.canvas.width / 2, this.game.canvas.height / 2, "intro")
+      .setScale(4);
+
+    this.ouas = this.add
+      .image(-30, -40, "ouas")
+      .setOrigin(0)
+      .setScale(1);
+
+    const _config = {
+      font: "35px",
+      fill: "#ffffff",
+      stroke: "#000000",
+      strokeThickness: 4,
+      wordWrap: true,
+      wordWrapWidth: 1000
+    };
+    this.add
+      .text(20, 300, "Escape from\nSinclair's castle", _config)
+      .setStroke("#000000", 10)
+      .setAlpha(1)
+      .setOrigin(0)
+      .setFontFamily('"Press Start 2P"')
+      .setDepth(1001);
 
     this.loading = this.add
-      .bitmapText(this.game.canvas.width / 2, 620, "commodore", "Loading...")
+      .text(
+        this.game.canvas.width / 2,
+        620,
+        "Escape from\nSinclair's castle",
+        _config
+      )
+      .setStroke("#000000", 10)
+      .setAlpha(1)
+      .setOrigin(0)
+      .setFontFamily('"Press Start 2P"')
+      .setDepth(1001)
       .setOrigin(0.5);
+
+    /* this.add
+      .text(this.game.canvas.width / 2, 620, "commodore", "Loading...")
+      .setOrigin(0.5);*/
   }
 
   create() {
@@ -65,26 +97,24 @@ export default class Preloader extends Phaser.Scene {
       //this.logo.setAlpha(value);
 
       this.loading.setText("Loading..." + Math.round(value * 100) + "%");
+
+      this.logo.setAlpha(value);
     });
 
     this.load.on("complete", () => {
-      this.loading.setText("Tap/click to start");
+      this.loading.setText("Tap/click to continue");
       this.body.className = "";
       this.progress.clear();
       if (this.sys.game.device.input.touch) {
         //@ts-ignore
-        console.log("swEnabled", swEnabled);
+        //console.log("swEnabled", swEnabled);
         //@ts-ignore
-        if (swEnabled && modalPrompt != null) modalPrompt.classList.add("show");
+        //if (swEnabled && modalPrompt != null) modalPrompt.classList.add("show");
       }
 
       this.input.once("pointerdown", () => {
         this.scene.stop("Preloader");
-        // this.scene.start('Menu')
-
-        this.registry.set("time", 0);
-        this.registry.set("level", 8);
-        this.registry.set("score", 0);
+        this.registry.set("time", 100);
         this.registry.set("lives", 3);
         this.registry.set("player", "");
         this.scene.start("GamePlay");
@@ -92,7 +122,6 @@ export default class Preloader extends Phaser.Scene {
         this.scene.bringToTop("GamePlay");
         this.scene.bringToTop("Hud");
 
-        //
         if (this.sys.game.device.input.touch) {
           this.scene.start("Joy");
           this.scene.bringToTop("Joy");
