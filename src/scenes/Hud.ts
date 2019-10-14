@@ -96,6 +96,7 @@ export default class HUD extends Phaser.Scene {
       alpha: 0,
       duration: 500
     });
+    this.livesGroup.clear(true, true);
   }
 
   private startTimer(): void {

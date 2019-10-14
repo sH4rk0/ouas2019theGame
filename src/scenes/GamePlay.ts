@@ -32,7 +32,7 @@ export default class GamePlay extends Phaser.Scene {
                  private groupItemsArray: Array<Array<Item>>;
                  public triggerExecuter: TriggerExecuter;
                  private currentRespawn: number = 0;
-                 private isDebug: boolean = true;
+                 private isDebug: boolean = false;
 
                  private bg: Phaser.GameObjects.TileSprite;
                  private bg2: Phaser.GameObjects.TileSprite;
@@ -63,6 +63,7 @@ export default class GamePlay extends Phaser.Scene {
                  private groupRespawn: Array<Respawn> = [];
                  public mapDoors: Array<Phaser.Tilemaps.Tile>;
                  public mapTeleports: Array<Phaser.Tilemaps.Tile>;
+                 public mapLevers: Array<Phaser.Tilemaps.Tile>;
                  public mapTriggers: Array<Phaser.Tilemaps.Tile>;
 
                  private rt: any;
@@ -519,6 +520,7 @@ export default class GamePlay extends Phaser.Scene {
                      this.map.heightInPixels * this.mapScaleFactor
                    );
 
+                   this.add.image(1900,57,"madonnina").setScale(4).setOrigin(0)
                    /*
     this.blockEmitter = this.add.particles("brick");
 
@@ -547,6 +549,7 @@ export default class GamePlay extends Phaser.Scene {
                    this.setUpTriggers();
                    this.setUpDoors();
                    this.setUpTeleports();
+                   this.setUpLevers();
                    this.setUpPlatforms();
                    this.setUpItems();
                    this.setUpRespawn();
@@ -623,6 +626,25 @@ export default class GamePlay extends Phaser.Scene {
                          target: tile.name,
                          status: tile.type,
                          delay: 0
+                       });
+                   });
+                 }
+
+                 setUpLevers(): void {
+                   //setup doors and triggers
+                   //---------------------------------------------------------------------
+
+                   this.mapLevers = this.map.getObjectLayer("levers")
+                     .objects as any[];
+                   this.mapLevers.forEach((tile: any) => {
+                     
+                     
+                       this.triggerExecuter.execute({
+                         type: "lever",
+                         target: tile.name,
+                         status: tile.type,
+                         delay: 0,
+                         anim:"single"
                        });
                    });
                  }
@@ -710,15 +732,22 @@ export default class GamePlay extends Phaser.Scene {
 
                          break;
                        case "lift":
-                         this.groupPlatform.add(
-                           new Lift({
-                             scene: this,
-                             x: platform.x * this.mapScaleFactor,
-                             y: platform.y * this.mapScaleFactor,
-                             key: `lift`,
-                             values: <LiftValues>JSON.parse(platform.type)
-                           })
-                         );
+
+                       let _key: string = `lift`;
+                       const _values:LiftValues=<LiftValues>JSON.parse(platform.type)
+                       //console.log(_values)
+                       if (_values.key != null) _key =_values.key;
+                       
+                       this.groupPlatform.add(
+                         new Lift({
+                           scene: this,
+                           x: platform.x * this.mapScaleFactor,
+                           y: platform.y * this.mapScaleFactor,
+                           key: `lift`,
+                           name: _key,
+                           values: _values
+                         })
+                       );
 
                          break;
                      }
@@ -771,14 +800,16 @@ export default class GamePlay extends Phaser.Scene {
                    this.groupItems = this.add.group({ runChildUpdate: true });
                    const itemsObject = this.map.getObjectLayer("items")
                      .objects as any[];
-                   this.groupItemsArray = [[], []];
+                   this.groupItemsArray = [[],[],[],[],[],[],[],[]];
                    let _item: Item;
                    let _options: any;
                    itemsObject.forEach((item: any) => {
-                     //console.log(GameData.triggers,GameData.triggers[item.type]);
+                     
                      switch (item.name) {
                        case "item":
                          _options = GameData.triggers[item.type];
+                        
+                        
                          _item = new Item({
                            scene: this,
                            key: "items",
@@ -786,7 +817,7 @@ export default class GamePlay extends Phaser.Scene {
                            y: item.y,
                            options: _options
                          });
-
+ //console.log(_item)
                          this.groupItemsArray[_options.key].push(_item);
                          this.groupItems.add(_item);
 
@@ -796,8 +827,12 @@ export default class GamePlay extends Phaser.Scene {
                    //console.log(this.groupItemsArray);
 
                    this.groupItemsArray.forEach((element: Array<Item>) => {
-                     let _item: Item = Phaser.Utils.Array.GetRandom(element);
-                     _item.setKey();
+                     if (element.length > 0 && _options.trigger!=null) {
+                       let _item: Item = Phaser.Utils.Array.GetRandom(element);
+                       //console.log(_item);
+                       _item.setKey();
+                     }
+                     
                    });
 
                    this.physics.add.overlap(
@@ -895,6 +930,7 @@ export default class GamePlay extends Phaser.Scene {
                    this.groupItemsArray = [];
                    this.groupItems.clear(true, true);
                    this.setUpItems();
+                  
 
                    //this.events.emit("restartTimer");
 
@@ -905,7 +941,21 @@ export default class GamePlay extends Phaser.Scene {
                    // console.log(this.currentRespawn);
                    this.groupRespawn.forEach((respawn: Respawn) => {
                      if (parseInt(respawn.key) == this.currentRespawn)
-                       this.player.respawn(respawn);
+                      {
+this.player.respawn(respawn);
+
+console.log(GameData.triggers["r_" + respawn.key]);
+
+if (GameData.triggers["r_" + respawn.key]!=null){
+
+  GameData.triggers["r_" + respawn.key].timeline.forEach((element:any)=>{
+this.triggerExecuter.execute(element);
+
+  })
+  
+
+} 
+                      } 
                    });
                    this.followPlayer();
                    this.registry.values.time = this.respawnTime;
@@ -924,7 +974,7 @@ export default class GamePlay extends Phaser.Scene {
                    //@ts-ignore
                    sound.on("complete", (sound: Phaser.Sound.BaseSound) => {
                      //@ts-ignore
-                     this.music.seek = 0;
+                     if (this.music!=null) this.music.seek = 0;
                      this.sound.resumeAll();
                      //this.music.resume();
                      //@ts-ignore
@@ -1154,7 +1204,11 @@ export default class GamePlay extends Phaser.Scene {
                  }
 
                  playerTimeDie(): void {
-                   this.decLives();
+                   
+                  
+                  //this.decLives();
+                   this.gameOver();
+
                  }
 
                  decLives() {
@@ -1190,6 +1244,11 @@ export default class GamePlay extends Phaser.Scene {
                  }
                  getPlayerY(): number {
                    return this.player.y;
+                 }
+
+                 getPlatforms():any{
+
+                  return this.groupPlatform.getChildren();
                  }
 
                  resetTextWriter() {

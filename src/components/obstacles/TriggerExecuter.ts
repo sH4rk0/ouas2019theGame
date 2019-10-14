@@ -1,10 +1,12 @@
 import GamePlay from "../../scenes/GamePlay";
 import { TileAnimator } from "./TileAnimator";
 import { GameData } from "../../GameData";
+import { Lift } from "../obstacles/Lift";
 
 export class TriggerExecuter {
   private currentScene: GamePlay;
   private status: string;
+
   constructor(scene: GamePlay) {
     this.currentScene = scene;
   }
@@ -34,6 +36,50 @@ export class TriggerExecuter {
 
         break;
 
+      case "lift-reset":
+        //console.log("lift-reset");
+        this.currentScene.time.addEvent({
+          delay: timelineElement.delay,
+          callback: () => {
+            this.currentScene
+              .getPlatforms()
+              .forEach((tile: Lift, index: number) => {
+                //console.log(tile.name, timelineElement.target);
+                if (tile.name === timelineElement.target) {
+                  tile.reset();
+                }
+              });
+          },
+          callbackScope: this
+        });
+
+        break;
+
+      case "lever":
+        this.currentScene.time.addEvent({
+          delay: timelineElement.delay,
+          callback: () => {
+            this.currentScene.mapLevers.forEach((tile: any, index: number) => {
+              if (tile.name === timelineElement.target) {
+                //console.log(timelineElement);
+                if (timelineElement.status != undefined)
+                  this.status = timelineElement.status;
+
+                new TileAnimator(
+                  this.currentScene,
+                  tile,
+                  GameData.triggers[tile.name],
+                  this.status,
+                  timelineElement.anim
+                );
+              }
+            });
+          },
+          callbackScope: this
+        });
+
+        break;
+
       case "doors-reset":
         this.currentScene.mapDoors.forEach((tile: any, index: number) => {
           new TileAnimator(
@@ -47,6 +93,7 @@ export class TriggerExecuter {
         break;
 
       case "teleport":
+        //console.log(timelineElement);
         this.currentScene.time.addEvent({
           delay: timelineElement.delay,
           callback: () => {

@@ -51,10 +51,12 @@ interface LiftConfig {
   x: number;
   y: number;
   key: string;
+  name: string;
   values: LiftValues;
 }
 interface LiftValues {
   start?: number;
+  key?: string;
   steps?: Array<{ r: number; v: number }>;
 }
 
@@ -89,6 +91,7 @@ interface TriggerTimeline {
   key?: string;
   volume?: number;
   loop?: boolean;
+  anim?: string;
 }
 
 interface TileAnimation {

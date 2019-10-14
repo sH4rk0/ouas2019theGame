@@ -65,7 +65,7 @@ export class Searching extends Phaser.GameObjects.Container {
     //0: nothing
     //1: trigger
     //2: random
-    console.log(found);
+    //console.log(found);
     switch (found) {
       case 0:
         if (Phaser.Math.RND.integerInRange(0, 100) > 50) {

@@ -11,9 +11,10 @@ export class Lift extends Phaser.GameObjects.Sprite {
   // variables
   protected currentScene: GamePlay;
   private params: LiftValues;
-
   private liftTween: Phaser.Tweens.Tween;
   private start: number;
+  private startX: number;
+  private startY: number;
   private currentStep: number;
   private _isMoving: boolean;
   private steps: Array<{ r: number; v: number }>;
@@ -22,7 +23,12 @@ export class Lift extends Phaser.GameObjects.Sprite {
     super(params.scene, params.x, params.y, params.key);
 
     this.currentScene = <GamePlay>params.scene;
+    if (params.values.start != null) this.start = params.values.start;
+    this.startX = params.x;
+    this.startY = params.y;
+    this.name = params.name;
     this.params = params.values;
+
     this.currentStep = 0;
     if (this.params.start != undefined) this.currentStep = this.params.start;
     if (this.params.steps != null) this.steps = this.params.steps;
@@ -74,6 +80,18 @@ export class Lift extends Phaser.GameObjects.Sprite {
 
   isMoving(): boolean {
     return this._isMoving;
+  }
+
+  reset(): void {
+    this.currentScene.tweens.add({
+      targets: this,
+      x: this.startX,
+      y: this.startY,
+      duration: 500
+    });
+
+    this.currentStep = this.start;
+    //console.log(this.start, this.currentStep);
   }
 
   trigger(value: number): void {
