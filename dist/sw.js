@@ -1,6 +1,6 @@
-importScripts("precache-manifest.f9bbd806fa898626c7a47f5215bedf05.js", "https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
+importScripts("precache-manifest.323dc794a41598001e53c074315603ad.js", "https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
-var cacheName = 'ouas-2019-v1';
+var cacheName = 'ouas-2019-v2';
 var filesToCache = [
     '/',
     '/index.html'
