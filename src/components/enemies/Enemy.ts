@@ -14,6 +14,8 @@ export class Enemy extends Phaser.GameObjects.Sprite {
     // variables
     this.currentScene = <GamePlay>params.scene;
     this.initSprite();
+    this.isActivated = false;
+
     this.currentScene.add.existing(this);
   }
 

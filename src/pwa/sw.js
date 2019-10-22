@@ -1,4 +1,4 @@
-var cacheName = 'ouas-2019-v1';
+var cacheName = 'ouas-2019-v2';
 var filesToCache = [
     '/',
     '/index.html'

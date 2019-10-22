@@ -2,6 +2,7 @@ import GamePlay from "../../scenes/GamePlay";
 import { TileAnimator } from "./TileAnimator";
 import { GameData } from "../../GameData";
 import { Lift } from "../obstacles/Lift";
+import { EnemyGeneric } from "../enemies/Enemy.Generic";
 
 export class TriggerExecuter {
   private currentScene: GamePlay;
@@ -11,12 +12,18 @@ export class TriggerExecuter {
     this.currentScene = scene;
   }
 
+  executer(timeline: Array<any>): void {
+    timeline.forEach(element => {
+      this.execute(element);
+    });
+  }
+
   execute(timelineElement: any): void {
-    switch (timelineElement.type) {
-      case "door":
-        this.currentScene.time.addEvent({
-          delay: timelineElement.delay,
-          callback: () => {
+    this.currentScene.time.addEvent({
+      delay: timelineElement.delay,
+      callback: () => {
+        switch (timelineElement.type) {
+          case "door":
             this.currentScene.mapDoors.forEach((tile: any, index: number) => {
               if (tile.name === timelineElement.target) {
                 if (timelineElement.status != undefined)
@@ -30,35 +37,40 @@ export class TriggerExecuter {
                 );
               }
             });
-          },
-          callbackScope: this
-        });
 
-        break;
+            break;
 
-      case "lift-reset":
-        //console.log("lift-reset");
-        this.currentScene.time.addEvent({
-          delay: timelineElement.delay,
-          callback: () => {
+          case "showJumpTip":
+            console.log("trigger");
+            this.currentScene.emit("showJumpTip");
+            break;
+
+          case "showSearchTip":
+            this.currentScene.emit("showSearchTip");
+            break;
+
+          case "active-enemy":
+            this.currentScene
+              .getEnemies()
+              .forEach((enemy: EnemyGeneric, index: number) => {
+                if (enemy.name === timelineElement.target) {
+                  enemy.makeActive();
+                }
+              });
+            break;
+
+          case "lift-reset":
             this.currentScene
               .getPlatforms()
               .forEach((tile: Lift, index: number) => {
-                //console.log(tile.name, timelineElement.target);
                 if (tile.name === timelineElement.target) {
                   tile.reset();
                 }
               });
-          },
-          callbackScope: this
-        });
 
-        break;
+            break;
 
-      case "lever":
-        this.currentScene.time.addEvent({
-          delay: timelineElement.delay,
-          callback: () => {
+          case "lever":
             this.currentScene.mapLevers.forEach((tile: any, index: number) => {
               if (tile.name === timelineElement.target) {
                 //console.log(timelineElement);
@@ -74,49 +86,53 @@ export class TriggerExecuter {
                 );
               }
             });
-          },
-          callbackScope: this
-        });
 
-        break;
+            break;
 
-      case "doors-reset":
-        this.currentScene.mapDoors.forEach((tile: any, index: number) => {
-          new TileAnimator(
-            this.currentScene,
-            tile,
-            GameData.triggers[tile.name],
-            tile.type
-          );
-        });
+          case "doors-reset":
+            this.currentScene.mapDoors.forEach((tile: any, index: number) => {
+              new TileAnimator(
+                this.currentScene,
+                tile,
+                GameData.triggers[tile.name],
+                tile.type
+              );
+            });
 
-        break;
+            break;
 
-      case "teleport":
-        //console.log(timelineElement);
-        this.currentScene.time.addEvent({
-          delay: timelineElement.delay,
-          callback: () => {
+          case "teleport":
             this.currentScene.mapTeleports.forEach(
               (tile: any, index: number) => {
                 if (tile.name === timelineElement.target) {
-                  this.currentScene.player.setX(tile.x);
-                  this.currentScene.player.setY(tile.y);
+                  this.currentScene.sound.add("tele-in").play(undefined, {
+                    loop: false,
+                    volume: 0.05
+                  });
+
+                  this.currentScene.player.setPlayerImmovable();
+                  this.currentScene.player.setAlpha(0);
+                  this.currentScene.time.addEvent({
+                    delay: 1500,
+                    callback: () => {
+                      this.currentScene.sound.add("tele-out").play(undefined, {
+                        loop: false,
+                        volume: 0.05
+                      });
+                      this.currentScene.player.setX(tile.x);
+                      this.currentScene.player.setY(tile.y);
+                      this.currentScene.player.setMovable();
+                      this.currentScene.player.setAlpha(1);
+                    },
+                    callbackScope: this
+                  });
                 }
               }
             );
-          }
-        });
 
-        break;
+            break;
 
-      case "camera-shake":
-        this.currentScene.time.addEvent({
-          delay: timelineElement.delay,
-          callback: () => {
-            // console.log("camera shake");
-            //this.currentScene.cameras.main.shake(200, 0.005, false);
-
+          case "camera-shake":
             var tween = this.currentScene.tweens.add({
               targets: this.currentScene.cameras.main,
               y: this.currentScene.cameras.main.y - 30,
@@ -125,37 +141,28 @@ export class TriggerExecuter {
               repeat: 3,
               yoyo: true
             });
-          },
-          callbackScope: this
-        });
-        break;
 
-      case "start-timer":
-        this.currentScene.time.addEvent({
-          delay: timelineElement.delay,
+            break;
 
-          callback: () => {
+          case "start-timer":
             this.currentScene.startTimer();
-          }
-        });
-        break;
 
-      case "play-music":
-        console.log("play-music", timelineElement.delay);
-        this.currentScene.time.addEvent({
-          delay: timelineElement.delay,
+            break;
 
-          callback: () => {
+          case "pause-timer":
+            this.currentScene.pauseTimer();
+            break;
+
+          case "play-timer":
+            this.currentScene.playTimer();
+            break;
+
+          case "play-music":
             this.currentScene.startMusic();
-          }
-        });
-        break;
 
-      case "play-audio":
-        console.log("play-audio", timelineElement);
-        this.currentScene.time.addEvent({
-          delay: timelineElement.delay,
-          callback: () => {
+            break;
+
+          case "play-audio":
             let _volume = 1;
 
             if (timelineElement.volume != undefined)
@@ -165,39 +172,50 @@ export class TriggerExecuter {
               loop: timelineElement.loop,
               volume: _volume
             });
-          },
-          callbackScope: this
-        });
 
-        break;
+            break;
 
-      case "pause-audio":
-        break;
+          case "pause-audio":
+            break;
 
-      case "resume-audio":
-        break;
+          case "resume-audio":
+            break;
 
-      case "respawn":
-        this.currentScene.setRespawn(timelineElement.respawn);
-        break;
+          case "respawn":
+            this.currentScene.setRespawn(timelineElement.respawn);
+            break;
 
-      case "trigger-copy":
-        this.currentScene.time.addEvent({
-          delay: timelineElement.delay,
-
-          callback: () => {
+          case "trigger-copy":
             GameData.triggers[timelineElement.to] =
               GameData.triggers[timelineElement.from];
-          }
-        });
 
-        break;
+            break;
 
-      case "camera-zoom-in":
-        this.currentScene.player.setPlayerImmovable();
-        this.currentScene.time.addEvent({
-          delay: timelineElement.delay,
-          callback: () => {
+          case "player-immovable":
+            this.currentScene.player.setPlayerImmovable();
+            this.currentScene.cameras.main.stopFollow();
+
+            break;
+
+          case "player-movable":
+            this.currentScene.player.setMovable();
+            this.currentScene.followPlayer();
+
+            break;
+
+          case "camera-pan":
+            this.currentScene.mapDoors.forEach((tile: any, index: number) => {
+              if (tile.name === timelineElement.target) {
+                this.currentScene.cameras.main.pan(
+                  tile.x,
+                  tile.y,
+                  timelineElement.speed
+                );
+              }
+            });
+
+            break;
+          case "camera-zoom-in":
             var tween = this.currentScene.tweens.add({
               targets: this.currentScene.blackTop,
               y: 50,
@@ -225,23 +243,25 @@ export class TriggerExecuter {
                 this.currentScene.cameras.main.setZoom(tween.getValue());
               }
             });
-
-            this.currentScene.cameras.main.stopFollow();
+            //this.currentScene.player.setPlayerImmovable();
+            //this.currentScene.cameras.main.stopFollow();
 
             this.currentScene.cameras.main.pan(
               this.currentScene.player.x,
-              this.currentScene.player.y,
+              this.currentScene.player.y + timelineElement.delta,
               700
             );
-          },
-          callbackScope: this
-        });
-        break;
 
-      case "camera-zoom-out":
-        this.currentScene.time.addEvent({
-          delay: timelineElement.delay,
-          callback: () => {
+            break;
+          case "game-completed":
+            this.currentScene.gameCompleted();
+            break;
+
+          case "hide-hud":
+            this.currentScene.hideHud();
+            break;
+
+          case "camera-zoom-out":
             var tween = this.currentScene.tweens.add({
               targets: this.currentScene.blackTop,
               y: -150,
@@ -270,7 +290,6 @@ export class TriggerExecuter {
               },
               onComplete: () => {
                 this.currentScene.followPlayer();
-
                 this.currentScene.player.setMovable();
               }
             });
@@ -280,11 +299,11 @@ export class TriggerExecuter {
               this.currentScene.player.y - 32 * 4,
               700
             );
-          },
-          callbackScope: this
-        });
 
-        break;
-    }
+            break;
+        }
+      },
+      callbackScope: this
+    });
   }
 }

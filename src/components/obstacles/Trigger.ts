@@ -82,8 +82,10 @@ export class Trigger extends Phaser.GameObjects.Image {
   }
 
   executeTrigger(): void {
-    this.timeline.forEach((timelineElement: TriggerTimeline) => {
+    this.currentScene.triggerExecuter.executer(this.timeline);
+
+    /*this.timeline.forEach((timelineElement: TriggerTimeline) => {
       this.currentScene.triggerExecuter.execute(timelineElement);
-    });
+    });*/
   }
 }

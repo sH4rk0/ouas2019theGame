@@ -1,26 +1,27 @@
-import * as firebase from 'firebase'
+import * as firebase from "firebase";
 
 export default class Leaderboard {
   private firebaseConfig = {
-    apiKey: 'AIzaSyAdRVmgt6jh-CJ4nmZQh8KwNp_ABivgdmo',
-    authDomain: 'supermajor2k19.firebaseapp.com',
-    databaseURL: 'https://supermajor2k19.firebaseio.com',
-    projectId: 'supermajor2k19',
-    storageBucket: 'supermajor2k19.appspot.com',
-    messagingSenderId: '789535657299',
-    appId: '1:789535657299:web:ce6ba1fd68a249b1'
-  }
-  private fireBaseApp: firebase.app.App
-  private fireBaseDb: firebase.database.Database
-  private scores: firebase.database.Reference
+    apiKey: "AIzaSyBigqZoMti0BKt-_JoNNWHnNIXmlSIrI-c",
+    authDomain: "ouas2019.firebaseapp.com",
+    databaseURL: "https://ouas2019.firebaseio.com",
+    projectId: "ouas2019",
+    storageBucket: "ouas2019.appspot.com",
+    messagingSenderId: "449930501997",
+    appId: "1:449930501997:web:e2e2e8acfc4de46c"
+  };
+  private fireBaseApp: firebase.app.App;
+  private fireBaseDb: firebase.database.Database;
+  private scores: firebase.database.Reference;
 
   constructor() {
-    this.fireBaseApp = firebase.initializeApp(this.firebaseConfig)
-    this.fireBaseDb = this.fireBaseApp.database()
-    this.scores = this.fireBaseDb.ref('scores')
+    this.fireBaseApp = firebase.initializeApp(this.firebaseConfig);
+    this.fireBaseDb = this.fireBaseApp.database();
+    this.scores = this.fireBaseDb.ref("scores");
   }
 
   insertScore(score: ScoreConfig) {
-    this.scores.push(score)
+    //console.log(score);
+    this.scores.push(score);
   }
 }

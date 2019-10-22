@@ -61,7 +61,7 @@ export let GameData: any = {
              },
              map: "level-1",
              intro: "Kill you opponents, collect bonus and find the exit",
-             time: 100,
+             time: 20,
              bg: { x: 0, y: -320 },
              clouds: [
                {
@@ -110,6 +110,13 @@ export let GameData: any = {
              width: 64,
              height: 128,
              frames: 2
+           },
+           {
+             name: "robot",
+             path: "assets/images/game/robots.png",
+             width: 17,
+             height: 24,
+             frames: 7
            }
          ],
 
@@ -255,6 +262,15 @@ export let GameData: any = {
              loop: false
            },
            {
+             name: "mission",
+             paths: [
+               "assets/sounds/mission-original.ogg",
+               "assets/sounds/mission-original.m4a"
+             ],
+             volume: 1,
+             loop: false
+           },
+           {
              name: "ahhhhh",
              paths: ["assets/sounds/ahhhhh.ogg", "assets/sounds/ahhhhh.m4a"],
              volume: 1,
@@ -267,10 +283,73 @@ export let GameData: any = {
              loop: true
            },
            {
+             name: "gate",
+             paths: ["assets/sounds/gate.ogg", "assets/sounds/gate.m4a"],
+             volume: 0.5,
+             loop: false
+           },
+           {
+             name: "clank",
+             paths: ["assets/sounds/clank.ogg", "assets/sounds/clank.m4a"],
+             volume: 0.5,
+             loop: false
+           },
+           {
              name: "close-door",
              paths: [
                "assets/sounds/close-door.ogg",
                "assets/sounds/close-door.m4a"
+             ],
+             volume: 1,
+             loop: true
+           },
+           {
+             name: "destroy",
+             paths: [
+               "assets/sounds/destroy-original.ogg",
+               "assets/sounds/destroy-original.m4a"
+             ],
+             volume: 1,
+             loop: true
+           },
+           {
+             name: "evil",
+             paths: [
+               "assets/sounds/evil-original.ogg",
+               "assets/sounds/evil-original.m4a"
+             ],
+             volume: 1,
+             loop: true
+           },
+           {
+             name: "no",
+             paths: [
+               "assets/sounds/no-original.ogg",
+               "assets/sounds/no-original.m4a"
+             ],
+             volume: 1,
+             loop: true
+           },
+           {
+             name: "win",
+             paths: [
+               "assets/sounds/win.ogg",
+               "assets/sounds/win.m4a"
+             ],
+             volume: 1,
+             loop: true
+           },
+           {
+             name: "tele-in",
+             paths: ["assets/sounds/tele-in.ogg", "assets/sounds/tele-in.m4a"],
+             volume: 1,
+             loop: true
+           },
+           {
+             name: "tele-out",
+             paths: [
+               "assets/sounds/tele-out.ogg",
+               "assets/sounds/tele-out.m4a"
              ],
              volume: 1,
              loop: true
@@ -313,6 +392,7 @@ export let GameData: any = {
              width: 2,
              height: 6,
              timeline: [
+               { type: "player-immovable", delay: 0 },
                { type: "camera-shake", value: 1, delay: 250 },
                { type: "door", target: "d_0", status: "on", delay: 0 },
                {
@@ -321,7 +401,7 @@ export let GameData: any = {
                  key: "close-door",
                  volume: 0.5
                },
-               { type: "camera-zoom-in", delay: 600, duration: 1000 },
+               { type: "camera-zoom-in", delay: 600, duration: 1000, delta: 0 },
                {
                  type: "play-audio",
                  delay: 2000,
@@ -422,14 +502,35 @@ export let GameData: any = {
                  key: "close-door",
                  volume: 0.5
                },
+
+               {
+                 type: "play-audio",
+                 delay: 700,
+                 key: "destroy",
+                 volume: 0.5
+               },
+               { type: "active-enemy", delay: 2700, target: "e_2" },
                { type: "respawn", respawn: 7 }
              ]
            },
+
            t_3: {
              type: "once",
              width: 1,
              height: 1,
              timeline: [
+               {
+                 type: "play-audio",
+                 delay: 0,
+                 key: "gate",
+                 volume: 0.1
+               },
+               {
+                 type: "play-audio",
+                 delay: 0,
+                 key: "clank",
+                 volume: 0.1
+               },
                { type: "door", target: "d_10", status: "off", delay: 0 },
                {
                  type: "lever",
@@ -468,8 +569,23 @@ export let GameData: any = {
                  delay: 0,
                  anim: "single"
                },
-               { type: "door", target: "d_5", status: "off", delay: 0 },
-               { type: "respawn", respawn: 5 }
+               {
+                 type: "play-audio",
+                 delay: 0,
+                 key: "clank",
+                 volume: 0.1
+               },
+               { type: "player-immovable", delay: 0 },
+               { type: "camera-pan", target: "d_5", speed: 1200, delay: 200 },
+               {
+                 type: "play-audio",
+                 delay: 1900,
+                 key: "gate",
+                 volume: 0.1
+               },
+               { type: "door", target: "d_5", status: "off", delay: 1900 },
+               { type: "respawn", respawn: 5 },
+               { type: "player-movable", delay: 3700 }
              ]
            },
 
@@ -485,8 +601,23 @@ export let GameData: any = {
                  delay: 0,
                  anim: "single"
                },
-               { type: "door", target: "d_4", status: "off", delay: 0 },
-               { type: "respawn", respawn: 4 }
+               {
+                 type: "play-audio",
+                 delay: 0,
+                 key: "clank",
+                 volume: 0.1
+               },
+               { type: "player-immovable", delay: 0 },
+               { type: "camera-pan", target: "d_4", speed: 1200, delay: 200 },
+               {
+                 type: "play-audio",
+                 delay: 1900,
+                 key: "gate",
+                 volume: 0.1
+               },
+               { type: "door", target: "d_4", status: "off", delay: 1900 },
+               { type: "respawn", respawn: 4 },
+               { type: "player-movable", delay: 3700 }
              ]
            },
 
@@ -595,13 +726,18 @@ export let GameData: any = {
            },
 
            //test
+
            t_6: {
-             type: "switch",
+             type: "once",
              width: 1,
              height: 1,
-             inactive: 300,
-             status: "off",
-             timelineOn: [
+             timeline: [
+               {
+                 type: "play-audio",
+                 delay: 0,
+                 key: "clank",
+                 volume: 0.1
+               },
                {
                  type: "lever",
                  target: "l_0",
@@ -609,17 +745,16 @@ export let GameData: any = {
                  delay: 0,
                  anim: "single"
                },
-               { type: "door", target: "d_2", status: "off", delay: 0 }
-             ],
-             timelineOff: [
+               { type: "player-immovable", delay: 0 },
+               { type: "camera-pan", target: "d_2", speed: 1200, delay: 200 },
+               { type: "door", target: "d_2", status: "off", delay: 1900 },
                {
-                 type: "lever",
-                 target: "l_0",
-                 status: "off",
-                 delay: 0,
-                 anim: "single"
+                 type: "play-audio",
+                 delay: 1900,
+                 key: "gate",
+                 volume: 0.1
                },
-               { type: "door", target: "d_2", status: "on", delay: 0 }
+               { type: "player-movable", delay: 3700 }
              ]
            },
 
@@ -627,7 +762,14 @@ export let GameData: any = {
              type: "once",
              width: 2,
              height: 3,
+
              timeline: [
+               {
+                 type: "play-audio",
+                 delay: 0,
+                 key: "clank",
+                 volume: 0.1
+               },
                {
                  type: "lever",
                  target: "l_4",
@@ -635,7 +777,16 @@ export let GameData: any = {
                  delay: 0,
                  anim: "single"
                },
-               { type: "door", target: "d_3", status: "off", delay: 0 }
+               { type: "player-immovable", delay: 0 },
+               { type: "camera-pan", target: "d_3", speed: 1200, delay: 200 },
+               { type: "door", target: "d_3", status: "off", delay: 1900 },
+               {
+                 type: "play-audio",
+                 delay: 1900,
+                 key: "gate",
+                 volume: 0.1
+               },
+               { type: "player-movable", delay: 3700 }
              ]
            },
 
@@ -652,6 +803,13 @@ export let GameData: any = {
                  key: "close-door",
                  volume: 0.5
                },
+               {
+                 type: "play-audio",
+                 delay: 700,
+                 key: "destroy",
+                 volume: 0.5
+               },
+               { type: "active-enemy", delay: 2700, target: "e_1" },
                { type: "respawn", respawn: 6 }
              ]
            },
@@ -709,16 +867,102 @@ export let GameData: any = {
              width: 4,
              height: 2,
              timeline: [
-              
-               { type: "camera-zoom-in", delay: 100, duration: 1000 },
+               { type: "player-immovable", delay: 0 },
+               { type: "hide-hud", delay: 0 },
+               {
+                 type: "camera-zoom-in",
+                 delay: 200,
+                 duration: 1000,
+                 delta: -100
+               },
+               { type: "game-completed", delay: 4000 },
+
                {
                  type: "play-audio",
-                 delay: 2000,
-                 key: "anothervisitor",
+                 delay: 1500,
+                 key: "mission",
                  loop: false,
-                 volume: 0.5
+                 volume: 0.3
                }
-              
+             ]
+           },
+
+           t_19: {
+             type: "switch",
+             width: 1,
+             height: 1,
+             inactive: 300,
+             status: "off",
+             timelineOn: [
+               { type: "lift-reset", target: "lift-1" },
+               { type: "lift-reset", target: "lift-2" },
+               {
+                 type: "play-audio",
+                 delay: 0,
+                 key: "clank",
+                 volume: 0.1
+               },
+               {
+                 type: "lever",
+                 target: "l_5",
+                 status: "on",
+                 delay: 0,
+                 anim: "single"
+               }
+             ],
+             timelineOff: [
+               { type: "lift-reset", target: "lift-1" },
+               { type: "lift-reset", target: "lift-2" },
+               {
+                 type: "play-audio",
+                 delay: 0,
+                 key: "clank",
+                 volume: 0.1
+               },
+               {
+                 type: "lever",
+                 target: "l_5",
+                 status: "off",
+                 delay: 0,
+                 anim: "single"
+               }
+             ]
+           },
+
+           t_none: {
+             type: "once",
+             width: 2,
+             height: 3,
+             timeline: []
+           },
+
+           t_20: {
+             type: "once",
+             width: 2,
+             height: 3,
+             timeline: [
+               { type: "showJumpTip", delay: 50 },
+               {
+                 type: "trigger-copy",
+                 from: "t_none",
+                 to: "t_20",
+                 delay: 100
+               }
+             ]
+           },
+
+           t_21: {
+             type: "once",
+             width: 2,
+             height: 3,
+             timeline: [
+               { type: "showSearchTip", delay: 50 },
+               {
+                 type: "trigger-copy",
+                 from: "t_none",
+                 to: "t_21",
+                 delay: 100
+               }
              ]
            },
 
@@ -727,6 +971,7 @@ export let GameData: any = {
            l_2: GameAnim.leverAnim,
            l_3: GameAnim.leverAnim,
            l_4: GameAnim.leverAnim,
+           l_5: GameAnim.leverAnim,
 
            d_0: GameAnim.doorAnim5,
            d_1: GameAnim.doorAnim3,
@@ -743,50 +988,110 @@ export let GameData: any = {
 
            s_1: {
              key: 0,
-             trigger: {
-               type: "door",
-               target: "d_1",
-               status: "off",
-               delay: 1000
-             }
+             trigger: [
+               {
+                 type: "play-audio",
+                 delay: 1000,
+                 key: "gate",
+                 volume: 0.1
+               },
+               {
+                 type: "door",
+                 target: "d_1",
+                 status: "off",
+                 delay: 1000
+               }
+             ]
            },
 
            s_2: {
              key: 1,
-             trigger: {
-               type: "door",
-               target: "d_11",
-               status: "off",
-               delay: 1000
-             }
+             trigger: [
+               {
+                 type: "play-audio",
+                 delay: 0,
+                 key: "clank",
+                 volume: 0.1
+               },
+
+               { type: "player-immovable", delay: 0 },
+               { type: "camera-pan", target: "d_11", speed: 1200, delay: 200 },
+               { type: "door", target: "d_11", status: "off", delay: 1900 },
+               {
+                 type: "play-audio",
+                 delay: 1900,
+                 key: "gate",
+                 volume: 0.1
+               },
+               { type: "player-movable", delay: 3700 }
+             ]
            },
 
            s_3: {
              key: 2,
-             trigger: {
-               type: "door",
-               target: "d_9",
-               status: "off",
-               delay: 1000
-             }
+             trigger: [
+               {
+                 type: "play-audio",
+                 delay: 0,
+                 key: "clank",
+                 volume: 0.1
+               },
+
+               { type: "player-immovable", delay: 0 },
+               { type: "camera-pan", target: "d_9", speed: 1200, delay: 200 },
+               { type: "door", target: "d_9", status: "off", delay: 1900 },
+               {
+                 type: "play-audio",
+                 delay: 1900,
+                 key: "gate",
+                 volume: 0.1
+               },
+               { type: "player-movable", delay: 3700 }
+             ]
            },
            s_4: {
              key: 3,
-             trigger: {
-               type: "door",
-               target: "d_6",
-               status: "off",
-               delay: 1000
-             }
+             trigger: [
+               {
+                 type: "play-audio",
+                 delay: 0,
+                 key: "clank",
+                 volume: 0.1
+               },
+
+               { type: "player-immovable", delay: 0 },
+               { type: "camera-pan", target: "d_6", speed: 1200, delay: 200 },
+               { type: "door", target: "d_6", status: "off", delay: 1900 },
+               {
+                 type: "play-audio",
+                 delay: 1900,
+                 key: "gate",
+                 volume: 0.1
+               },
+               { type: "player-movable", delay: 3700 }
+             ]
            },
            s_5: {
              key: 4,
-             trigger: {
-               type: "door",
-               target: "d_7",
-               status: "off",
-               delay: 1000
-             }
+             trigger: [
+               {
+                 type: "play-audio",
+                 delay: 0,
+                 key: "clank",
+                 volume: 0.1
+               },
+
+               { type: "player-immovable", delay: 0 },
+               { type: "camera-pan", target: "d_7", speed: 1200, delay: 200 },
+               { type: "door", target: "d_7", status: "off", delay: 1900 },
+               {
+                 type: "play-audio",
+                 delay: 1900,
+                 key: "gate",
+                 volume: 0.1
+               },
+               { type: "player-movable", delay: 3700 }
+             ]
            },
 
            s_6: {

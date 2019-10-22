@@ -5,8 +5,7 @@ import Preloader from "./scenes/Preloader";
 import GamePlay from "./scenes/GamePlay";
 import Hud from "./scenes/Hud";
 import Joy from "./scenes/Joy";
-import GameOver from "./scenes/GameOver";
-import Win from "./scenes/Win";
+
 import Leaderboard from "./Leaderboard";
 
 export let leaderboard: Leaderboard;
@@ -27,35 +26,7 @@ const DEFAULT_WIDTH: number = 1280;
 const DEFAULT_HEIGHT: number = 720;
 
 window.addEventListener("load", () => {
-  // leaderboard = new Leaderboard();
-
-  const config: any = {
-    type: Phaser.WEBGL,
-    backgroundColor: "#50459b",
-    parent: "my-game",
-    input: {
-      activePointers: 2,
-      keyboard: true
-    },
-    scale: {
-      mode: Phaser.Scale.FIT,
-      width: DEFAULT_WIDTH,
-      height: DEFAULT_HEIGHT
-    },
-    scene: [Boot, Preloader, GamePlay, Hud, Joy, GameOver, Win],
-    physics: {
-      default: "arcade",
-      arcade: {
-        debug: false,
-        gravity: { y: 1600 }
-      }
-    },
-    render: { pixelArt: true, antialias: false }
-  };
-
-  const game = new Phaser.Game(config);
-
-  return;
+  leaderboard = new Leaderboard();
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker
@@ -64,16 +35,19 @@ window.addEventListener("load", () => {
       })
       .then(
         function(registration) {
-          //console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          console.log(
+            "ServiceWorker registration successful with scope: ",
+            registration.scope
+          );
         },
         function(err) {
-          //console.log('ServiceWorker registration failed: ', err);
+          console.log("ServiceWorker registration failed: ", err);
         }
       );
 
     window.addEventListener("beforeinstallprompt", (e: Event) => {
       //console.log('beforeinstallprompt triggered');
-      e.preventDefault();
+      //e.preventDefault();
       deferredPrompt = e;
       swEnabled = true;
     });
@@ -90,4 +64,30 @@ window.addEventListener("load", () => {
       if (modalPrompt != null) modalPrompt.style.display = "none";
     });
   }
+
+  const config: any = {
+    type: Phaser.WEBGL,
+    backgroundColor: "#50459b",
+    parent: "my-game",
+    input: {
+      activePointers: 2,
+      keyboard: true
+    },
+    scale: {
+      mode: Phaser.Scale.FIT,
+      width: DEFAULT_WIDTH,
+      height: DEFAULT_HEIGHT
+    },
+    scene: [Boot, Preloader, GamePlay, Hud, Joy],
+    physics: {
+      default: "arcade",
+      arcade: {
+        debug: false,
+        gravity: { y: 1600 }
+      }
+    },
+    render: { pixelArt: true, antialias: false }
+  };
+
+  const game = new Phaser.Game(config);
 });

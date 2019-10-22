@@ -15,6 +15,7 @@ export class Item extends Phaser.Physics.Arcade.Sprite {
 
     this.currentScene = <GamePlay>params.scene;
     this.options = params.options;
+
     this.name = "Item";
     this.hasKey = false;
     this.initItem();
@@ -41,6 +42,11 @@ export class Item extends Phaser.Physics.Arcade.Sprite {
     this.currentScene.searching.hide();
   }
 
+  hasTrigger() {
+    if (this.options.trigger != null) return true;
+    return false;
+  }
+
   setKey(): void {
     this.hasKey = true;
   }
@@ -55,7 +61,7 @@ export class Item extends Phaser.Physics.Arcade.Sprite {
 
     if (this.searchValue == 0) {
       if (this.hasKey) {
-        this.currentScene.triggerExecuter.execute(this.options.trigger);
+        this.currentScene.triggerExecuter.executer(this.options.trigger);
       }
       this.currentScene.physics.world.disable(this);
 

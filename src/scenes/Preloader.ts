@@ -12,6 +12,7 @@ import { swEnabled } from "../InitGame";
 export default class Preloader extends Phaser.Scene {
   body: HTMLElement;
   loading: Phaser.GameObjects.Text;
+  text: Phaser.GameObjects.Text;
   progress: Phaser.GameObjects.Graphics;
   logo: Phaser.GameObjects.Image;
   ouas: Phaser.GameObjects.Image;
@@ -36,7 +37,8 @@ export default class Preloader extends Phaser.Scene {
     this.ouas = this.add
       .image(-30, -40, "ouas")
       .setOrigin(0)
-      .setScale(1);
+      .setScale(1)
+      .setAlpha(0);
 
     const _config = {
       font: "35px",
@@ -46,10 +48,10 @@ export default class Preloader extends Phaser.Scene {
       wordWrap: true,
       wordWrapWidth: 1000
     };
-    this.add
-      .text(20, 300, "Escape from\nSinclair's castle", _config)
+    this.text = this.add
+      .text(-50, 300, "Escape from\nSinclair's castle", _config)
       .setStroke("#000000", 10)
-      .setAlpha(1)
+      .setAlpha(0)
       .setOrigin(0)
       .setFontFamily('"Press Start 2P"')
       .setDepth(1001);
@@ -102,6 +104,19 @@ export default class Preloader extends Phaser.Scene {
     });
 
     this.load.on("complete", () => {
+      this.tweens.add({
+        targets: [this.ouas],
+        alpha: 1,
+        duration: 250
+      });
+      this.tweens.add({
+        targets: [this.text],
+        alpha: 1,
+        x: 20,
+        duration: 250,
+        ease: "Sine.easeOut",
+        delay: 200
+      });
       this.loading.setText("Tap/click to continue");
       this.body.className = "";
       this.progress.clear();
@@ -109,12 +124,15 @@ export default class Preloader extends Phaser.Scene {
         //@ts-ignore
         //console.log("swEnabled", swEnabled);
         //@ts-ignore
-        //if (swEnabled && modalPrompt != null) modalPrompt.classList.add("show");
+        if (swEnabled && modalPrompt != null) {
+          console.log("show modal");
+          modalPrompt.classList.add("show");
+        }
       }
 
       this.input.once("pointerdown", () => {
         this.scene.stop("Preloader");
-        this.registry.set("time", 100);
+        this.registry.set("time", 20);
         this.registry.set("lives", 3);
         this.registry.set("player", "");
         this.scene.start("GamePlay");

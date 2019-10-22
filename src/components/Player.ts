@@ -28,6 +28,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   private isSearching: boolean = false;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
 
+  private _W: Phaser.Input.Keyboard.Key;
+  private _A: Phaser.Input.Keyboard.Key;
+  private _S: Phaser.Input.Keyboard.Key;
+  private _D: Phaser.Input.Keyboard.Key;
+
   private playerAnimations: any = [
     {
       name: "idle",
@@ -111,8 +116,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.cursors = this.currentScene.input.keyboard.createCursorKeys();
 
-    if (this.cursors.left != null && this.cursors.left.isDown) {
-    }
+    this._W = this.currentScene.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.W
+    );
+    this._A = this.currentScene.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.A
+    );
+    this._S = this.currentScene.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.S
+    );
+    this._D = this.currentScene.input.keyboard.addKey(
+      Phaser.Input.Keyboard.KeyCodes.D
+    );
 
     this.setInteractive();
 
@@ -306,6 +321,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   die(): void {
     if (this.isDying) return;
+    this.setPlayerImmovable();
     this.isDying = true;
     this.currentScene.cameras.main.stopFollow();
     this.alpha = 0;
@@ -321,25 +337,28 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       scaleX: 3,
       ease: "Sine.easeOut",
       duration: 300,
-      repeat: 0
-    });
-    var tween2 = this.currentScene.tweens.add({
-      targets: _die,
-      y: this.y + 600,
-      scaleY: 3.5,
-      scaleX: 3.5,
-      ease: "Sine.easeIn",
-      delay: 300,
-      duration: 500,
-      onStart: () => {
-        _die.setAngle(180);
-      },
+      repeat: 0,
       onComplete: () => {
-        _die.destroy();
-        console.log("end die");
-        //this.currentScene.respawn();
-      },
-      repeat: 0
+        var tween2 = this.currentScene.tweens.add({
+          targets: _die,
+          y: this.y + 600,
+          scaleY: 3.5,
+          scaleX: 3.5,
+          ease: "Sine.easeIn",
+          delay: 0,
+          duration: 500,
+          onStart: () => {
+            _die.setAngle(180);
+          },
+          onComplete: () => {
+            _die.destroy();
+            this.setMovable();
+            //console.log("end die");
+            //this.currentScene.respawn();
+          },
+          repeat: 0
+        });
+      }
     });
 
     //this.destroy(true);
@@ -429,11 +448,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   downIsDown(): boolean {
     if (this.JoyScene == undefined) {
       if (
-        this.cursors.down != null &&
-        this.cursors.down.isDown &&
-        (this.cursors.up != null && !this.cursors.up.isDown) &&
-        (this.cursors.left != null && !this.cursors.left.isDown) &&
-        (this.cursors.right != null && !this.cursors.right.isDown)
+        (this.cursors.down != null &&
+          this.cursors.down.isDown &&
+          (this.cursors.up != null && !this.cursors.up.isDown) &&
+          (this.cursors.left != null && !this.cursors.left.isDown) &&
+          (this.cursors.right != null && !this.cursors.right.isDown)) ||
+        (this._S.isDown &&
+          !this._W.isDown &&
+          !this._A.isDown &&
+          !this._D.isDown)
       )
         return true;
       return false;
@@ -451,11 +474,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   upIsDown(): boolean {
     if (this.JoyScene == undefined) {
       if (
-        this.cursors.up != null &&
-        this.cursors.up.isDown &&
-        (this.cursors.down != null && !this.cursors.down.isDown) &&
-        (this.cursors.left != null && !this.cursors.left.isDown) &&
-        (this.cursors.right != null && !this.cursors.right.isDown)
+        (this.cursors.up != null &&
+          this.cursors.up.isDown &&
+          (this.cursors.down != null && !this.cursors.down.isDown) &&
+          (this.cursors.left != null && !this.cursors.left.isDown) &&
+          (this.cursors.right != null && !this.cursors.right.isDown)) ||
+        (this._W.isDown &&
+          !this._S.isDown &&
+          !this._A.isDown &&
+          !this._D.isDown)
       )
         return true;
       return false;
@@ -474,11 +501,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   leftIsDown(): boolean {
     if (this.JoyScene == undefined) {
       if (
-        this.cursors.left != null &&
-        this.cursors.left.isDown &&
-        (this.cursors.up != null && !this.cursors.up.isDown) &&
-        (this.cursors.down != null && !this.cursors.down.isDown) &&
-        (this.cursors.right != null && !this.cursors.right.isDown)
+        (this.cursors.left != null &&
+          this.cursors.left.isDown &&
+          (this.cursors.up != null && !this.cursors.up.isDown) &&
+          (this.cursors.down != null && !this.cursors.down.isDown) &&
+          (this.cursors.right != null && !this.cursors.right.isDown)) ||
+        (this._A.isDown &&
+          !this._S.isDown &&
+          !this._W.isDown &&
+          !this._D.isDown)
       )
         return true;
       return false;
@@ -497,11 +528,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   rightIsDown(): boolean {
     if (this.JoyScene == undefined) {
       if (
-        this.cursors.right != null &&
-        this.cursors.right.isDown &&
-        (this.cursors.up != null && !this.cursors.up.isDown) &&
-        (this.cursors.down != null && !this.cursors.down.isDown) &&
-        (this.cursors.left != null && !this.cursors.left.isDown)
+        (this.cursors.right != null &&
+          this.cursors.right.isDown &&
+          (this.cursors.up != null && !this.cursors.up.isDown) &&
+          (this.cursors.down != null && !this.cursors.down.isDown) &&
+          (this.cursors.left != null && !this.cursors.left.isDown)) ||
+        (this._D.isDown &&
+          !this._S.isDown &&
+          !this._A.isDown &&
+          !this._W.isDown)
       )
         return true;
       return false;
@@ -518,6 +553,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   moreCursorDown(): boolean {
+    if (this.arrowsMoreIsdown() || this.wasdMoreIsDown()) return true;
+    return false;
+  }
+
+  arrowsMoreIsdown(): boolean {
     if (
       (this.cursors.left != null &&
         this.cursors.left.isDown &&
@@ -544,13 +584,28 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return false;
   }
 
+  wasdMoreIsDown(): boolean {
+    if (
+      (this._W.isDown &&
+        (this._A.isDown || this._S.isDown || this._D.isDown)) ||
+      (this._A.isDown &&
+        (this._W.isDown || this._S.isDown || this._D.isDown)) ||
+      (this._S.isDown &&
+        (this._A.isDown || this._W.isDown || this._D.isDown)) ||
+      (this._D.isDown && (this._A.isDown || this._S.isDown || this._W.isDown))
+    )
+      return true;
+    return false;
+  }
+
   noCursorDown(): boolean {
     if (
       this.cursors.left != null &&
       !this.cursors.left.isDown &&
       (this.cursors.up != null && !this.cursors.up.isDown) &&
       (this.cursors.down != null && !this.cursors.down.isDown) &&
-      (this.cursors.right != null && !this.cursors.right.isDown)
+      (this.cursors.right != null && !this.cursors.right.isDown) &&
+      (!this._W.isDown && !this._A.isDown && !this._S.isDown && !this._D.isDown)
     )
       return true;
     return false;

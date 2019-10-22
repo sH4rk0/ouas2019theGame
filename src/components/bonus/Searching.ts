@@ -68,8 +68,8 @@ export class Searching extends Phaser.GameObjects.Container {
     //console.log(found);
     switch (found) {
       case 0:
-        if (Phaser.Math.RND.integerInRange(0, 100) > 50) {
-          const _time = Phaser.Math.RND.integerInRange(10, 20);
+        if (Phaser.Math.RND.integerInRange(0, 100) > 30) {
+          const _time = Phaser.Math.RND.integerInRange(15, 20);
           this.currentScene.registry.values.time =
             this.currentScene.registry.values.time + _time;
           this.searchText.setText(`You found +${_time} time bonus`);

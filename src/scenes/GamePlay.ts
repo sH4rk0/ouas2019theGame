@@ -17,7 +17,7 @@ import { EnemyGeneric } from "../components/enemies/Enemy.Generic";
 import { GameData } from "../GameData";
 import { Searching } from "../components/bonus/Searching";
 import { TriggerExecuter } from "../components/obstacles/TriggerExecuter";
-import { threadId } from "worker_threads";
+import { leaderboard } from "../InitGame";
 
 export default class GamePlay extends Phaser.Scene {
                  public player: Player;
@@ -28,6 +28,8 @@ export default class GamePlay extends Phaser.Scene {
                  public layer: Phaser.Tilemaps.StaticTilemapLayer;
                  public layer2: Phaser.Tilemaps.DynamicTilemapLayer;
                  public layer3: Phaser.Tilemaps.StaticTilemapLayer;
+                 public layer4: Phaser.Tilemaps.StaticTilemapLayer;
+
                  public currentPlayer: Player;
                  private groupItemsArray: Array<Array<Item>>;
                  public triggerExecuter: TriggerExecuter;
@@ -45,10 +47,15 @@ export default class GamePlay extends Phaser.Scene {
                  private mist3: Phaser.GameObjects.TileSprite;
                  public respawnTime: number;
 
+                 private timePlayed:number=0;
+                 private timerCounter:Phaser.Time.TimerEvent;
+
                  public blackTop: Phaser.GameObjects.Image;
                  public blackBottom: Phaser.GameObjects.Image;
 
                  public ouas: Phaser.GameObjects.Image;
+
+                 private firstPlay:boolean=true;
 
                  public startText: Phaser.GameObjects.BitmapText;
                  public startTextTween: Phaser.Tweens.Tween;
@@ -65,6 +72,9 @@ export default class GamePlay extends Phaser.Scene {
                  public mapTeleports: Array<Phaser.Tilemaps.Tile>;
                  public mapLevers: Array<Phaser.Tilemaps.Tile>;
                  public mapTriggers: Array<Phaser.Tilemaps.Tile>;
+
+                 private btnGreen: Phaser.GameObjects.Image;
+                 private btnRed: Phaser.GameObjects.Image;
 
                  private rt: any;
                  private bgtest: any;
@@ -137,6 +147,38 @@ export default class GamePlay extends Phaser.Scene {
                      text: "Save The Date",
                      x: 400,
                      size: "normal 35px"
+                   },
+                   {
+                     text: "WASD or ARROWS: Move",
+                     x: 400,
+                     size: "normal 35px"
+                   },
+                   {
+                     text: "SPACE: Jump",
+                     x: 400,
+                     size: "normal 35px"
+                   },
+                   {
+                     text: "W or UP: Search",
+                     x: 400,
+                     size: "normal 35px"
+                   },
+                   {
+                     text: "3 Lives for glory!",
+                     x: 400,
+                     size: "normal 35px"
+                   },
+
+                   {
+                     text: "Time ends you die!",
+                     x: 400,
+                     size: "normal 35px"
+                   },
+
+                   {
+                     text: "Are you tough enough?",
+                     x: 400,
+                     size: "normal 35px"
                    }
                  ];
                  private currentTextIndex: number = 0;
@@ -161,11 +203,31 @@ export default class GamePlay extends Phaser.Scene {
                  }
 
                  startTimer() {
-                   this.events.emit("startTimer");
+
+                this.timerCounter = this.time.addEvent({
+                  delay: 1000,
+                  callback: ()=>{
+this.timePlayed++;
+
+                  },
+                  callbackScope: this,
+                  loop: true
+                });
+                   this.emit("startTimer");
+                  
+                 }
+
+                 pauseTimer() {
+                    this.emit("pauseTimer");
+                  
+                 }
+                 playTimer() {
+                    this.emit("playTimer");
+                 
                  }
 
                  create() {
-                   //console.log("create gameplay");
+                  
                    this.triggerExecuter = new TriggerExecuter(this);
                    this.lights.enable();
 
@@ -227,7 +289,7 @@ export default class GamePlay extends Phaser.Scene {
                    //this.registry.values.time = this.level.time;
                    this.setUpLevel();
 
-                   //this.events.emit("startTimer");
+               
 
                    this.mist1 = this.add
                      .tileSprite(640, 780, 1280, 88, "mist1")
@@ -252,6 +314,31 @@ export default class GamePlay extends Phaser.Scene {
                      .setAlpha(0.4)
                      .setOrigin(0.5, 1)
                      .setDepth(9999);
+
+                   this.btnGreen = this.add
+                     .image(450, 600, "btn-green")
+                     .setScrollFactor(0)
+                     .setDepth(10000)
+                     .setOrigin(0.5)
+                     .setAlpha(0)
+                     .setInteractive();
+
+                   this.btnGreen.on("pointerdown", () => {
+                     this.startplay();
+                   });
+                   this.btnRed = this.add
+                     .image(800, 600, "btn-red")
+                     .setScrollFactor(0)
+                     .setDepth(10000)
+                     .setOrigin(0.5)
+                     .setAlpha(0)
+                     .setInteractive();
+                   this.btnRed.on("pointerdown", () => {
+                     window.open(
+                       "https://www.eventbrite.co.uk/e/biglietti-once-upon-a-sprite-milano-2019-74941824013",
+                       "_blank"
+                     );
+                   });
 
                    this.tweens.add({
                      targets: this.mist1,
@@ -314,7 +401,7 @@ export default class GamePlay extends Phaser.Scene {
                    this.hand = this.add
                      .image(
                        this.game.canvas.width / 2,
-                       this.game.canvas.height / 2 - 10,
+                       this.game.canvas.height / 2 - 100,
                        "hand"
                      )
                      .setOrigin(0.5)
@@ -358,13 +445,64 @@ export default class GamePlay extends Phaser.Scene {
                  }
 
                  stopMusic() {
-                   this.music.stop();
+                   if (this.music != null) this.music.stop();
+                 }
+
+                 emit(emit:string):void{
+
+                  this.events.emit(emit);
+                 };
+
+                 startplay() {
+                   this.textActive = false;
+                   this.player.setMovable();
+                   //this.startTextTween.pause();
+                   this.emit("showHUD");
+
+                   
+                   if (this.firstPlay) {
+                     this.emit("showKeysTip");
+                     this.firstPlay=false;
+                   }
+                  
+                   
+                   this.respawnTime = 0;
+
+                   this.tweens.add({
+                     targets: this.hand,
+                     yoyo: true,
+                     alpha: 1,
+                     x: this.hand.x + 100,
+                     repeat: 1
+                   });
+
+                   this.tweens.add({
+                     targets: [
+                       this.startText,
+                       this.ouas,
+                       this.textwriter,
+                       this.btnGreen,
+                       this.btnRed
+                     ],
+                     alpha: 0,
+                     ease: "Sine.Out",
+                     yoyo: false,
+                     repeat: 0,
+
+                     duration: 600,
+                     onComplete: () => {
+                       this.ouas.setX(-200);
+                       this.btnGreen.setY(600);
+                       this.btnRed.setY(600);
+                     }
+                   });
                  }
 
                  setUpPlay() {
                    this.isGameOver = false;
-                   //this.startText.setAlpha(1);
 
+                   //this.startMusic();
+                
                    this.tweens.add({
                      targets: this.ouas,
                      alpha: 1,
@@ -374,57 +512,16 @@ export default class GamePlay extends Phaser.Scene {
                      delay: 2000,
                      onComplete: () => {
                        this.resetTextWriter();
-
                        this.textwriter.setAlpha(1);
 
-                       this.startTextTween = this.tweens.add({
-                         targets: this.startText,
+                       this.tweens.add({
+                         targets: [this.btnGreen, this.btnRed],
                          alpha: 1,
+                         y: 580,
                          ease: "Sine.Out",
-                         yoyo: true,
-                         repeat: -1,
-
-                         duration: 600
+                         duration: 500
                        });
 
-                       // this.startTextTween.restart();
-
-                       this.input.once(
-                         "pointerdown",
-                         () => {
-                           this.textActive = false;
-                           this.player.setMovable();
-                           this.startTextTween.pause();
-                           this.events.emit("showHUD");
-                           this.respawnTime = 0;
-
-                           this.tweens.add({
-                             targets: this.hand,
-                             yoyo: true,
-                             alpha: 1,
-                             x: this.hand.x + 100,
-                             repeat: 1
-                           });
-
-                           this.tweens.add({
-                             targets: [
-                               this.startText,
-                               this.ouas,
-                               this.textwriter
-                             ],
-                             alpha: 0,
-                             ease: "Sine.Out",
-                             yoyo: false,
-                             repeat: 0,
-
-                             duration: 600,
-                             onComplete: () => {
-                               this.ouas.setX(-200);
-                             }
-                           });
-                         },
-                         this
-                       );
                      }
                    });
                  }
@@ -484,6 +581,18 @@ export default class GamePlay extends Phaser.Scene {
                      0,
                      0
                    );
+
+                   this.layer4 = this.map.createStaticLayer(
+                     "enemycollision",
+                     this.tileset,
+                     0,
+                     0
+                   );
+
+                   this.layer4.setCollisionByProperty({
+                     collide: true
+                   });
+
                    this.layer2 = this.map.createDynamicLayer(
                      "collision",
                      this.tileset,
@@ -494,6 +603,7 @@ export default class GamePlay extends Phaser.Scene {
                    this.layer2.setCollisionByProperty({
                      collide: true
                    });
+
                    this.layer3.setDepth(10);
 
                    //this.layer.setPipeline("Light2D");
@@ -520,7 +630,10 @@ export default class GamePlay extends Phaser.Scene {
                      this.map.heightInPixels * this.mapScaleFactor
                    );
 
-                   this.add.image(1900,57,"madonnina").setScale(4).setOrigin(0)
+                   this.add
+                     .image(1900, 57, "madonnina")
+                     .setScale(4)
+                     .setOrigin(0);
                    /*
     this.blockEmitter = this.add.particles("brick");
 
@@ -560,7 +673,7 @@ export default class GamePlay extends Phaser.Scene {
                      y: 0,
                      key: ""
                    });
-                   //this.setUpEnemies();
+                   this.setUpEnemies();
 
                    this.player.setPlayerImmovable();
                  }
@@ -619,7 +732,7 @@ export default class GamePlay extends Phaser.Scene {
                    this.mapDoors = this.map.getObjectLayer("doors")
                      .objects as any[];
                    this.mapDoors.forEach((tile: any) => {
-                     //console.log(tile);
+                    
                      if (tile.type == "on")
                        this.triggerExecuter.execute({
                          type: "door",
@@ -631,63 +744,51 @@ export default class GamePlay extends Phaser.Scene {
                  }
 
                  setUpLevers(): void {
-                   //setup doors and triggers
+                   //setup levers
                    //---------------------------------------------------------------------
 
                    this.mapLevers = this.map.getObjectLayer("levers")
                      .objects as any[];
                    this.mapLevers.forEach((tile: any) => {
-                     
-                     
-                       this.triggerExecuter.execute({
-                         type: "lever",
-                         target: tile.name,
-                         status: tile.type,
-                         delay: 0,
-                         anim:"single"
-                       });
+
+                     this.triggerExecuter.execute({
+                       type: "lever",
+                       target: tile.name,
+                       status: tile.type,
+                       delay: 0,
+                       anim: "single"
+                     });
+
                    });
                  }
 
                  setUpTeleports(): void {
-                   //setup doors and triggers
+                   //setup Teleports
                    //---------------------------------------------------------------------
 
                    this.mapTeleports = this.map.getObjectLayer("teleport")
                      .objects as any[];
-                   /*this.mapTeleports.forEach((tile: any) => {
-                     //console.log(tile);
-                     if (tile.type == "on")
-                       this.triggerExecuter.execute({
-                         type: "door",
-                         target: tile.name,
-                         status: tile.type,
-                         delay: 0
-                       });
-                   });*/
+                
                  }
 
                  setUpTriggers(): void {
-                   //setup doors and triggers
+                   //setup triggers
                    //---------------------------------------------------------------------
                    this.groupTrigger = this.add.group({ runChildUpdate: true });
                    this.mapTriggers = this.map.getObjectLayer("triggers")
                      .objects as any[];
                    this.mapTriggers.forEach((tile: any) => {
-                     /* console.log(tile.type, <TriggerValues>(
-                       GameData.triggers[tile.type]
-                     ));*/
+                   
 
-                     if (tile.name == "trigger") {
-                       this.groupTrigger.add(
-                         new Trigger({
-                           scene: this,
-                           x: tile.x / 32,
-                           y: tile.y / 32,
-                           values: <TriggerValues>GameData.triggers[tile.type]
-                         })
-                       );
-                     }
+                     this.groupTrigger.add(
+                       new Trigger({
+                         scene: this,
+                         x: tile.x / 32,
+                         y: tile.y / 32,
+                         values: <TriggerValues>GameData.triggers[tile.type]
+                       })
+                     );
+                    
                    });
 
                    this.physics.add.overlap(
@@ -697,14 +798,14 @@ export default class GamePlay extends Phaser.Scene {
                      undefined,
                      this
                    );
-                   //console.log(this.mapDoors);
+                  
                  }
 
                  triggerCollide(_obj1: any, _obj2: any): void {
                    const _player: Player = <Player>_obj1;
                    const _trigger: Trigger = <Trigger>_obj2;
 
-                   //console.log(_trigger);
+                  
                  }
 
                  setUpPlatforms(): void {
@@ -732,22 +833,23 @@ export default class GamePlay extends Phaser.Scene {
 
                          break;
                        case "lift":
-
-                       let _key: string = `lift`;
-                       const _values:LiftValues=<LiftValues>JSON.parse(platform.type)
-                       //console.log(_values)
-                       if (_values.key != null) _key =_values.key;
+                         let _key: string = `lift`;
+                         const _values: LiftValues = <LiftValues>(
+                           JSON.parse(platform.type)
+                         );
                        
-                       this.groupPlatform.add(
-                         new Lift({
-                           scene: this,
-                           x: platform.x * this.mapScaleFactor,
-                           y: platform.y * this.mapScaleFactor,
-                           key: `lift`,
-                           name: _key,
-                           values: _values
-                         })
-                       );
+                         if (_values.key != null) _key = _values.key;
+
+                         this.groupPlatform.add(
+                           new Lift({
+                             scene: this,
+                             x: platform.x * this.mapScaleFactor,
+                             y: platform.y * this.mapScaleFactor,
+                             key: `lift`,
+                             name: _key,
+                             values: _values
+                           })
+                         );
 
                          break;
                      }
@@ -769,14 +871,15 @@ export default class GamePlay extends Phaser.Scene {
 
                    enemiesObject.forEach((enemy: any) => {
                      switch (enemy.name) {
-                       case "enemy1":
+                       case "robot":
                          this.groupEnemy.add(
                            new EnemyGeneric({
                              scene: this,
-                             key: "player",
+                             key: "robot",
                              x: enemy.x,
                              y: enemy.y,
-                             frame: null
+                             frame: null,
+                             name: enemy.type
                            })
                          );
                          break;
@@ -786,7 +889,15 @@ export default class GamePlay extends Phaser.Scene {
                      }
                    });
 
-                   this.physics.add.collider(this.groupEnemy, this.layer2);
+                  
+                   this.physics.add.collider(
+                     this.groupEnemy,
+                     this.layer4,
+                     this.enemyTilesCollide,
+                     undefined,
+                     this
+                   );
+
                    this.physics.add.collider(
                      this.player,
                      this.groupEnemy,
@@ -800,40 +911,35 @@ export default class GamePlay extends Phaser.Scene {
                    this.groupItems = this.add.group({ runChildUpdate: true });
                    const itemsObject = this.map.getObjectLayer("items")
                      .objects as any[];
-                   this.groupItemsArray = [[],[],[],[],[],[],[],[]];
+                   this.groupItemsArray = [[], [], [], [], [], [], [], []];
                    let _item: Item;
                    let _options: any;
                    itemsObject.forEach((item: any) => {
-                     
-                     switch (item.name) {
-                       case "item":
-                         _options = GameData.triggers[item.type];
-                        
-                        
-                         _item = new Item({
-                           scene: this,
-                           key: "items",
-                           x: item.x,
-                           y: item.y,
-                           options: _options
-                         });
- //console.log(_item)
-                         this.groupItemsArray[_options.key].push(_item);
-                         this.groupItems.add(_item);
+                     _options = GameData.triggers[item.type];
 
-                         break;
-                     }
-                   });
-                   //console.log(this.groupItemsArray);
+                     _item = new Item({
+                       scene: this,
+                       key: "items",
+                       x: item.x,
+                       y: item.y,
+                       options: _options
+                     });
 
-                   this.groupItemsArray.forEach((element: Array<Item>) => {
-                     if (element.length > 0 && _options.trigger!=null) {
-                       let _item: Item = Phaser.Utils.Array.GetRandom(element);
-                       //console.log(_item);
-                       _item.setKey();
-                     }
-                     
+                     this.groupItemsArray[_options.key].push(_item);
+                     this.groupItems.add(_item);
                    });
+
+                   this.groupItemsArray.forEach(
+                     (element: Array<Item>, index: number) => {
+                       //console.log(element,_options.trigger);
+                       if (element.length > 0) {
+                         let _item: Item = Phaser.Utils.Array.GetRandom(
+                           element
+                         );
+                         if (_item.hasTrigger()) _item.setKey();
+                       }
+                     }
+                   );
 
                    this.physics.add.overlap(
                      this.player,
@@ -915,7 +1021,6 @@ export default class GamePlay extends Phaser.Scene {
                      });
                    });
 
-                   //console.log(this.groupRespawn);
                  }
 
                  restartGame() {
@@ -925,37 +1030,29 @@ export default class GamePlay extends Phaser.Scene {
 
                    this.groupPlatform.clear(true, true);
                    this.setUpPlatforms();
+                   this.setUpLevers()
                    this.groupTrigger.clear(true, true);
                    this.setUpTriggers();
                    this.groupItemsArray = [];
                    this.groupItems.clear(true, true);
                    this.setUpItems();
-                  
-
-                   //this.events.emit("restartTimer");
-
                    this.respawn();
                  }
 
                  respawn() {
-                   // console.log(this.currentRespawn);
+                  
                    this.groupRespawn.forEach((respawn: Respawn) => {
-                     if (parseInt(respawn.key) == this.currentRespawn)
-                      {
-this.player.respawn(respawn);
+                     if (parseInt(respawn.key) == this.currentRespawn) {
+                       this.player.respawn(respawn);
 
-console.log(GameData.triggers["r_" + respawn.key]);
-
-if (GameData.triggers["r_" + respawn.key]!=null){
-
-  GameData.triggers["r_" + respawn.key].timeline.forEach((element:any)=>{
-this.triggerExecuter.execute(element);
-
-  })
-  
-
-} 
-                      } 
+                       if (GameData.triggers["r_" + respawn.key] != null) {
+                         GameData.triggers["r_" + respawn.key].timeline.forEach(
+                           (element: any) => {
+                             this.triggerExecuter.execute(element);
+                           }
+                         );
+                       }
+                     }
                    });
                    this.followPlayer();
                    this.registry.values.time = this.respawnTime;
@@ -967,31 +1064,69 @@ this.triggerExecuter.execute(element);
                  }
 
                  playerDie(): void {
-                   this.player.die();
+                   console.log("die");
                    this.sound.pauseAll();
+                   this.player.die();
 
                    let sound: Phaser.Sound.BaseSound = this.sound.add("ahhhhh");
                    //@ts-ignore
                    sound.on("complete", (sound: Phaser.Sound.BaseSound) => {
                      //@ts-ignore
-                     if (this.music!=null) this.music.seek = 0;
+                     if (this.music != null) this.music.seek = 0;
                      this.sound.resumeAll();
-                     //this.music.resume();
+                  
                      //@ts-ignore
                      sound.destroy();
-                     //this.restartLevel();
+                     
                      this.respawn();
                    });
                    //@ts-ignore
                    sound.play({ volume: 0.1 });
                  }
 
+                 hideHud() {
+                   this.emit("hideHUD");
+                  
+                 }
+
+                 gameCompleted() {
+                  
+                 if (this.timerCounter != null) this.timerCounter.destroy();
+
+                 leaderboard.insertScore({
+                   completed: true,
+                   time: this.timePlayed
+                 });
+                   if(this.music!=null){
+                     this.music.stop()
+                     
+   this.music = this.sound.add("win");
+ this.music.play(undefined,{
+   loop: true,
+   volume: 0.1
+ });
+                   }
+
+                   this.emit("startEndWriter");
+                  
+                 }
+
                  gameOver() {
+
+                 if (this.timerCounter!=null) this.timerCounter.destroy();
+
+                 
+                  leaderboard.insertScore({
+                  completed:false,
+                  time: this.timePlayed
+                  });
+                  this.timePlayed=0;
+                  
                    this.respawnTime = 0;
                    this.player.die();
                    this.stopMusic();
-                   this.events.emit("hideHUD");
-                   //this.music.pause();
+                   this.hideHud();
+                
 
                    this.sound.pauseAll();
 
@@ -999,7 +1134,7 @@ this.triggerExecuter.execute(element);
                    //@ts-ignore
                    sound.on("complete", (sound: Phaser.Sound.BaseSound) => {
                      //@ts-ignore
-                     this.music.seek = 0;
+                     if (this.music != null) this.music.seek = 0;
 
                      this.sound.play("breeze", {
                        loop: true,
@@ -1012,7 +1147,7 @@ this.triggerExecuter.execute(element);
                      this.player.setPlayerImmovable();
                      //this.respawn();
                      this.restartGame();
-                     //this.events.emit("livesChanged");
+                     
                      this.setUpPlay();
 
                      this.gameoversound = this.sound.add("gameover");
@@ -1139,6 +1274,25 @@ this.triggerExecuter.execute(element);
                    }
                  }
 
+                 enemyTilesCollide(_obj1: any, _obj2: any): void {
+                   const _enemy: EnemyGeneric = <EnemyGeneric>_obj1;
+                   const _tile: Phaser.Tilemaps.Tile = <Phaser.Tilemaps.Tile>(
+                     _obj2
+                   );
+
+                   //@ts-ignore
+                   if (_tile.properties.callback) {
+                     //@ts-ignore
+                     switch (_tile.properties.callback) {
+                       case "changedirection":
+                         _enemy.changeDirection();
+                         //console.log("change direction");
+
+                         break;
+                     }
+                   }
+                 }
+
                  bonusCollide(_obj1: any, _obj2: any): void {
                    const _player: Player = <Player>_obj1;
                    const _bonus: Bonus = <Bonus>_obj2;
@@ -1164,56 +1318,56 @@ this.triggerExecuter.execute(element);
                  }
 
                  enemyCollide(_obj1: any, _obj2: any): void {
+                   if (!this.player.isDied()) {
+                     const _player: Player = <Player>_obj1;
+                     const _enemy: EnemyGeneric = <EnemyGeneric>_obj2;
+
+                     this.decLives();
+                   }
+
                    /*
-    const _player: Player = <Player>_obj1;
-    const _enemy: Major = <Major>_obj2;
-
-    if (
-      !_player.isDied() &&
-      //@ts-ignore
-      (_player.body.touching.left ||
-        _player.body.touching.right ||
-        _player.body.touching.up) &&
-      //@ts-ignore
-      (_enemy.body.touching.left ||
-        //@ts-ignore
-        _enemy.body.touching.right ||
-        //@ts-ignore
-        _enemy.body.touching.down)
-    ) {
-      this.decLives();
-      // console.log('dead')
-    }
-
-    if (
-      !_player.isDied() &&
-      _player.body != undefined &&
-      //@ts-ignore
-      _player.body.touching.down &&
-      //@ts-ignore
-      _enemy != null &&
-      //@ts-ignore
-      _enemy.body.touching.up
-    ) {
-      _player.jumpOverEnemy();
-      this.sound.playAudioSprite("sfx", "smb_stomp");
-      _enemy.gotHitOnHead();
-    }
-
-    */
+                   if (
+                     !_player.isDied() &&
+                     //@ts-ignore
+                     (_player.body.touching.left ||
+                       _player.body.touching.right ||
+                       _player.body.touching.up) &&
+                     //@ts-ignore
+                     (_enemy.body.touching.left ||
+                       //@ts-ignore
+                       _enemy.body.touching.right ||
+                       //@ts-ignore
+                       _enemy.body.touching.down)
+                   ) {
+                     this.decLives();
+                     // console.log('dead')
+                   }
+*/
+                   /*  if (
+                     !_player.isDied() &&
+                     _player.body != undefined &&
+                     //@ts-ignore
+                     _player.body.touching.down &&
+                     //@ts-ignore
+                     _enemy != null &&
+                     //@ts-ignore
+                     _enemy.body.touching.up
+                   ) {
+                     _player.jumpOverEnemy();
+                     this.sound.playAudioSprite("sfx", "smb_stomp");
+                     _enemy.gotHitOnHead();
+                   }*/
                  }
 
                  playerTimeDie(): void {
-                   
-                  
-                  //this.decLives();
+                   //this.decLives();
                    this.gameOver();
-
                  }
 
                  decLives() {
                    this.registry.values.lives -= 1;
-                   this.events.emit("livesChanged");
+                   this.emit("livesChanged");
+                
                    if (this.registry.get("lives") > 0) {
                      this.playerDie();
                    } else {
@@ -1222,7 +1376,7 @@ this.triggerExecuter.execute(element);
                  }
 
                  hurryUp(): void {
-                   this.music.pause();
+                   if (this.music != null) this.music.pause();
                    let sound: Phaser.Types.Sound.AudioSpriteSound = this.sound.addAudioSprite(
                      "sfx"
                    );
@@ -1230,13 +1384,13 @@ this.triggerExecuter.execute(element);
                    sound.on(
                      "complete",
                      (sound: Phaser.Types.Sound.AudioSpriteSound) => {
-                       this.music.resume();
+                       if (this.music != null) this.music.resume();
                        //@ts-ignore
                        sound.destroy();
                      }
                    );
                    //@ts-ignore
-                   sound.play("smb_warning");
+                   sound.play("smb_warning", { volume: 0.3 });
                  }
 
                  getPlayerX(): number {
@@ -1246,9 +1400,12 @@ this.triggerExecuter.execute(element);
                    return this.player.y;
                  }
 
-                 getPlatforms():any{
+                 getPlatforms(): any {
+                   return this.groupPlatform.getChildren();
+                 }
 
-                  return this.groupPlatform.getChildren();
+                 getEnemies(): any {
+                   return this.groupEnemy.getChildren();
                  }
 
                  resetTextWriter() {

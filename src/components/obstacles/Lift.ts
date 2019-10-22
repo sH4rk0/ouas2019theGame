@@ -20,12 +20,12 @@ export class Lift extends Phaser.GameObjects.Sprite {
   private steps: Array<{ r: number; v: number }>;
 
   constructor(params: LiftConfig) {
-    super(params.scene, params.x, params.y, params.key);
+    super(params.scene, params.x, params.y - 1, params.key);
 
     this.currentScene = <GamePlay>params.scene;
     if (params.values.start != null) this.start = params.values.start;
     this.startX = params.x;
-    this.startY = params.y;
+    this.startY = params.y - 1;
     this.name = params.name;
     this.params = params.values;
 

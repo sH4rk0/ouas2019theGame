@@ -21,11 +21,10 @@ interface PlayerConfig {
   commands: boolean;
   inGame: boolean;
 }
+
 interface ScoreConfig {
-  name: string;
-  score: number;
-  level: number;
-  levelName: string;
+  completed: boolean;
+  time: number;
 }
 
 interface PlatformConfig {
@@ -128,6 +127,7 @@ interface EnemyConfig {
   y: number;
   key: string;
   frame: string | null;
+  name?: string;
 }
 
 interface BonusConfig {
