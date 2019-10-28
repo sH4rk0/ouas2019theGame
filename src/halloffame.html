@@ -1,34 +1,36 @@
 <!DOCTYPE html PUBLIC" -//W3C//DTD XHTML 1.0 Transitional//EN""http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-	<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-<head>
-	<link href='https://fonts.googleapis.com/css?family=Press+Start+2P' rel='stylesheet' type='text/css'>
-	<title>ONCE UPON A SPRITE 2019</title>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="chrome=1, IE=9">
-	<meta name="format-detection" content="telephone=no">
-	<meta name="HandheldFriendly" content="true" />
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="black">
-	<meta name="format-detection" content="telephone=no">
-	<meta name="HandheldFriendly" content="true" />
-	<meta name="robots" content="noindex,nofollow" />
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
-	<meta name="apple-mobile-web-app-title" content="OUAS 2019">
-	<meta name="viewport" content="initial-scale=1 maximum-scale=1 user-scalable=0
+	<head>
+		<link href='https://fonts.googleapis.com/css?family=Press+Start+2P'
+			rel='stylesheet' type='text/css'>
+		<title>ONCE UPON A SPRITE 2019</title>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="chrome=1, IE=9">
+		<meta name="format-detection" content="telephone=no">
+		<meta name="HandheldFriendly" content="true" />
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<meta name="format-detection" content="telephone=no">
+		<meta name="HandheldFriendly" content="true" />
+		<meta name="robots" content="noindex,nofollow" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+		<meta name="apple-mobile-web-app-title" content="OUAS 2019">
+		<meta name="viewport" content="initial-scale=1 maximum-scale=1 user-scalable=0
 			minimal-ui" />
-	<meta property="og:title" content="OUAS 2019" />
-	<meta property="og:type" content="article" />
-	<meta property="og:url" content="https://ouas2019.web.app/index.html" />
-	<meta property="og:image" content="https://ouas2019.web.app/assets/cover.jpg" />
-	<meta property="og:image:type" content="image/jpeg" />
-	<meta property="og:image:width" content="800" />
-	<meta property="og:image:height" content="600" />
-	<meta property="og:description" content="" />
-	<script src="assets/js/jquery.js"></script>
-	<script src="assets/js/firebase.js"></script>
-	<style>
+		<meta property="og:title" content="OUAS 2019" />
+		<meta property="og:type" content="article" />
+		<meta property="og:url" content="https://ouas2019.web.app/index.html" />
+		<meta property="og:image" content="https://ouas2019.web.app/assets/cover.jpg"
+			/>
+		<meta property="og:image:type" content="image/jpeg" />
+		<meta property="og:image:width" content="800" />
+		<meta property="og:image:height" content="600" />
+		<meta property="og:description" content="" />
+		<script src="assets/js/jquery.js"></script>
+		<script src="assets/js/firebase.js"></script>
+		<style>
 		body {
 			background-color: #000;
 
@@ -169,22 +171,26 @@
 			}
 		}
 	</style>
-</head>
+	</head>
 
-<body>
-	<div class="wrapper">
+	<body>
+		<div class="wrapper">
 
 
-		<h1><a href="/">CLICK TO PLAY!</a></h1>
+			<h1><a href="/">CLICK TO PLAY!</a></h1>
 
-		<div id="halloffame">
-			<h2>TOP PLAYERS</h2>
-			<div style="padding:0 25px 0 60px;">
-				<ol id="halloffameList" class="mylist"></ol>
+			<div id="halloffame">
+				<h2>TOP WINNERS</h2>
+				<div style="padding:0 25px 0 60px;">
+					<ol id="halloffameListWinners" class="mylist"></ol>
+				</div>
+				<h2>TOP LOSERS</h2>
+				<div style="padding:0 25px 0 60px;">
+					<ol id="halloffameListLosers" class="mylist"></ol>
+				</div>
+
 			</div>
-
-		</div>
-		<script>
+			<script>
 			var app = {
 
 				fbConfig: {
@@ -200,7 +206,10 @@
 				fbObj: null,
 				fbBtnObj: null,
 				data: [],
-				displayList: document.getElementById("halloffameList"),
+				winners: [],
+				losers:[],
+				displayListWinners: document.getElementById("halloffameListWinners"),
+				displayListLosers: document.getElementById("halloffameListLosers"),
 
 
 				init: function () {
@@ -220,20 +229,36 @@
 
 					this.fbBtnObj.on('child_added', function (data) {
 
-						app.data.push(data.val())
-						app.manageData();
+if(data.val().completed){
+	app.winners.push(data.val())
+
+	app.manageData(app.winners, app.displayListWinners);
+
+}else{
+
+	app.losers.push(data.val())
+	app.manageData(app.losers, app.displayListLosers);
+}
+					
+
+
+
+						
 
 					})
 
+					
 				},
 
 
 
-				manageData: function () {
+				manageData: function (who,list) {
+
+					
 
 					var values = "";
 
-					app.data.sort(compare);
+					who.sort(compare);
 
 
 					function compare(a, b) {
@@ -252,19 +277,25 @@
 
 
 
-					for (var l = 0; l < app.data.length; l++) {
+					for (var l = 0; l < who.length; l++) {
 
-						values = values + "<li class='row'>" +
-							" Dead after " + app.data[l].time + " seconds </li>"
+						if(who[l].completed){
+
+							values = values + "<li class='row'>Completed after " + who[l].time + " seconds </li>"
+						}else{
+
+							values = values + "<li class='row'>Dead after " + who[l].time + " seconds </li>"
+						}
+						
 
 					}
 
-					app.displayList.innerHTML = values
+					list.innerHTML = values
 
 				}
 			}
 			app.init();
 		</script>
-</body>
+		</body>
 
-</html>
+	</html>
