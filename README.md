@@ -2,9 +2,8 @@
 
 ## Play
 
-[Play the game](https://supermajor2k19.web.app) (Add it to the homescreen to test the PWA functionality)
+[Play the game](https://ouas2019.web.app) (Add it to the homescreen to test the PWA functionality)
 
-![SUPER MAJOR](/src/assets/images/halloffame/bg-halloffame.jpg)
 
 ## How To Use
 
@@ -12,10 +11,10 @@ To clone and run this game, you'll need [Git](https://git-scm.com) and [Node.js]
 
 ```bash
 # Clone this repository
-$ git clone --depth 1 https://github.com/sH4rk0/superMajor.git super-major-2k19
+$ git clone --depth 1 https://github.com/sH4rk0/ouas2019theGame.git super-major-2k19
 
 # Go into the repository
-$ cd super-major-2k19
+$ cd ouas2019theGame
 
 # Install dependencies
 $ npm install
