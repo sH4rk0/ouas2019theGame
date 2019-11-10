@@ -11,7 +11,7 @@ To clone and run this game, you'll need [Git](https://git-scm.com) and [Node.js]
 
 ```bash
 # Clone this repository
-$ git clone --depth 1 https://github.com/sH4rk0/ouas2019theGame.git super-major-2k19
+$ git clone --depth 1 https://github.com/sH4rk0/ouas2019theGame.git ouas2019theGame
 
 # Go into the repository
 $ cd ouas2019theGame
