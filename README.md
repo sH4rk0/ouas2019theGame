@@ -1,4 +1,4 @@
-# SUPER MAJOR - Baronissi election day 2k19
+# ONCE UPON A SPRITE 2019
 
 ## Play
 
